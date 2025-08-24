@@ -1,74 +1,198 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { useDebounce } from '../hooks/useDebounce';
+import { presets, aspectRatios, themes, convertFileToWebP, formatBytes } from '../lib/utils';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from './ui/Card';
+import { Button } from './ui/Button';
+import { Input } from './ui/Input';
+import { Label } from './ui/Label';
+import { Slider } from './ui/Slider';
+import { Select } from './ui/Select';
+import { ProgressBar } from './ui/ProgressBar';
+import { Tooltip } from './ui/Tooltip';
 
-// --- Custom Hook for Debouncing ---
-function useDebounce(value, delay) {
-  const [debouncedValue, setDebouncedValue] = useState(value);
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedValue(value);
-    }, delay);
-    return () => {
-      clearTimeout(handler);
+const Header = ({ theme, cycleTheme }) => {
+    const getNextThemeIcon = () => {
+        switch(theme) {
+            case 'playful': return <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-300 group-hover:-rotate-12 active:scale-125"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>;
+            case 'dark': return <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-300 group-hover:rotate-45 active:scale-125"><circle cx="12" cy="12" r="5"/><path d="M12 1v2"/><path d="M12 21v2"/><path d="m4.22 4.22 1.42 1.42"/><path d="m18.36 18.36 1.42 1.42"/><path d="M1 12h2"/><path d="M21 12h2"/><path d="m4.22 19.78 1.42-1.42"/><path d="m18.36 5.64 1.42-1.42"/></svg>;
+            default: return null;
+        }
+    }
+
+    return (
+        <CardHeader>
+            <Button onClick={cycleTheme} variant="ghost" size="icon" className="absolute top-4 right-4 h-8 w-8 group">
+                {getNextThemeIcon()}
+                <span className="sr-only">Cycle theme</span>
+            </Button>
+            <CardTitle className="text-2xl bg-amber-400">Bulk Image to WebP Converter</CardTitle>
+            <CardDescription>Drag and drop images to convert them using powerful, one-click presets.</CardDescription>
+        </CardHeader>
+    );
+};
+
+const FileUpload = ({ fileInputRef, addFiles }) => {
+    const handleDrop = (e) => {
+        e.preventDefault(); e.stopPropagation();
+        e.currentTarget.classList.remove('border-primary');
+        if (e.dataTransfer.files) addFiles(e.dataTransfer.files);
     };
-  }, [value, delay]);
-  return debouncedValue;
-}
+    const handleDragOver = (e) => { e.preventDefault(); e.stopPropagation(); };
+    const handleDragEnter = (e) => { e.preventDefault(); e.stopPropagation(); e.currentTarget.classList.add('border-primary'); };
+    const handleDragLeave = (e) => { e.preventDefault(); e.stopPropagation(); e.currentTarget.classList.remove('border-primary'); };
+    const handleFileChange = (e) => { if (e.target.files) addFiles(e.target.files); };
 
-// Helper components (These could be in their own files in a larger app)
-const Card = ({ className, ...props }) => <div className={`rounded-xl border bg-card text-card-foreground shadow-sm ${className}`} {...props} />;
-const CardHeader = ({ className, ...props }) => <div className={`relative flex flex-col space-y-1.5 p-6 ${className}`} {...props} />;
-const CardTitle = ({ className, ...props }) => <h3 className={`font-semibold leading-none tracking-tight ${className}`} {...props} />;
-const CardDescription = ({ className, ...props }) => <p className={`text-sm text-muted-foreground ${className}`} {...props} />;
-const CardContent = ({ className, ...props }) => <div className={`p-6 pt-0 ${className}`} {...props} />;
-const Button = ({ className, variant = 'default', size = 'default', ...props }) => {
-  const variants = { default: 'bg-primary text-primary-foreground shadow-sm hover:bg-primary/90', destructive: 'bg-destructive text-destructive-foreground shadow-xs hover:bg-destructive/90', outline: 'border border-input bg-transparent shadow-xs hover:bg-accent hover:text-accent-foreground', secondary: 'bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80', ghost: 'hover:bg-accent hover:text-accent-foreground', link: 'text-primary underline-offset-4 hover:underline' };
-  const sizes = { default: 'h-9 px-4 py-2', sm: 'h-8 rounded-md px-3 text-xs', lg: 'h-10 rounded-md px-8', icon: 'h-9 w-9' };
-  return <button className={`inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 ${variants[variant]} ${sizes[size]} ${className}`} {...props} />;
-};
-const Input = React.forwardRef(({ className, ...props }, ref) => <input className={`flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 ${className}`} ref={ref} {...props} />);
-const Label = ({ className, ...props }) => <label className={`text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${className}`} {...props} />;
-const Slider = ({ className, ...props }) => <input type="range" className={`w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 ${className}`} {...props} />;
-const Select = ({ className, children, ...props }) => (
-    <div className="relative w-full">
-        <select className={`appearance-none h-9 w-full rounded-md border border-input bg-transparent pl-3 pr-8 text-sm shadow-xs transition-colors placeholder:text-muted-foreground focus:outline-hidden focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 ${className}`} {...props}>{children}</select>
-        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-foreground"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg></div>
-    </div>
-);
-const ProgressBar = ({ progress }) => (
-    <div className="w-full bg-muted rounded-full h-2.5 mb-4">
-        <div className="bg-primary h-2.5 rounded-full transition-all duration-300" style={{ width: `${progress}%` }}></div>
-    </div>
-);
-const Tooltip = ({ children, text, className }) => (
-    <div className={`tooltip ${className || ''}`}>
-        {children}
-        <span className="tooltiptext">{text}</span>
-    </div>
-);
-
-// --- PRESET CONFIGURATION ---
-const presets = {
-    whytes_hero: { name: 'Blog Hero (The Whytes)', quality: 0.85, maxWidth: 1600, description: "For the top hero image on the blog." },
-    whytes_gallery: { name: 'Blog Gallery (The Whytes)', quality: 0.78, maxWidth: 1200, description: "For images in the photo gallery section." },
-    original: { name: 'Original Quality (No Resize)', quality: 0.95, maxWidth: null, description: "High quality, keeps original dimensions." },
-    hero: { name: 'Web Hero (1920px wide)', quality: 0.80, maxWidth: 1920, description: "For large banners and hero sections." },
-    photo_gallery: { name: 'Photo Gallery (1600px wide)', quality: 0.80, maxWidth: 1600, description: "For crisp images in a lightbox or portfolio view." },
-    standard: { name: 'Standard Web Image (1200px wide)', quality: 0.75, maxWidth: 1200, description: "Best for blog posts and content images." },
-    thumbnail: { name: 'Gallery Thumbnail (400px wide)', quality: 0.70, maxWidth: 400, description: "For fast-loading image galleries." },
-    custom: { name: 'Custom', quality: 0.75, maxWidth: null, description: "Manually set quality and dimensions." },
+    return (
+        <div
+            className="w-full border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all duration-300 hover:border-primary/80"
+            onDrop={handleDrop} onDragOver={handleDragOver} onDragEnter={handleDragEnter} onDragLeave={handleDragLeave}
+            onClick={() => fileInputRef.current.click()}
+        >
+            <Input type="file" ref={fileInputRef} className="hidden" accept="image/jpeg,image/png,image/gif,image/bmp" onChange={handleFileChange} multiple />
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mx-auto text-muted-foreground mb-4"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+            <p className="text-muted-foreground"><span className="font-semibold text-primary">Click to upload</span> or drag and drop files</p>
+            <p className="text-xs text-muted-foreground mt-1">Bulk conversion is supported</p>
+        </div>
+    );
 };
 
-const aspectRatios = {
-    '1:1': { ratio: 1 / 1, tip: 'Perfect square, great for profile pictures and Instagram posts.' },
-    '3:2': { ratio: 3 / 2, tip: 'Classic photography ratio from 35mm film.' },
-    '4:3': { ratio: 4 / 3, tip: 'Standard for digital cameras and monitors.' },
-    '16:9': { ratio: 16 / 9, tip: 'Widescreen, ideal for hero images and video thumbnails.' },
-    '9:16': { ratio: 9 / 16, tip: 'Vertical format for social media stories (Instagram, TikTok).' },
+const Settings = ({ selectedPreset, handlePresetChange, quality, handleQualitySliderChange, customWidth, handleWidthChange, customHeight, handleHeightChange, handleAspectRatioChange, theme }) => (
+    <div className="p-4 border rounded-lg bg-muted/50 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+            <div>
+                <Label htmlFor="preset">Optimization Preset</Label>
+                <Select id="preset" value={selectedPreset} onChange={handlePresetChange}>
+                    {Object.entries(presets).map(([key, preset]) => (
+                        <option key={key} value={key}>{preset.name}</option>
+                    ))}
+                </Select>
+                <p className="text-xs text-muted-foreground mt-1">{presets[selectedPreset].description}</p>
+            </div>
+            <div>
+                <Label htmlFor="quality">Quality: <span className="font-bold text-primary">{Math.round(quality * 100)}</span></Label>
+                <Slider id="quality" min="0.1" max="1" step="0.01" value={quality} onChange={handleQualitySliderChange} className="w-full" />
+            </div>
+        </div>
+        {selectedPreset === 'custom' && (
+            <div className="mt-4 pt-4 border-t border-border/50">
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <Label htmlFor="width">Width (px)</Label>
+                        <Input type="number" id="width" value={customWidth} onChange={handleWidthChange} />
+                    </div>
+                    <div>
+                        <Label htmlFor="height">Height (px)</Label>
+                        <Input type="number" id="height" value={customHeight} onChange={handleHeightChange} />
+                    </div>
+                </div>
+                <div className="flex flex-wrap gap-2 mt-2">
+                    {Object.entries(aspectRatios).map(([name, {ratio, tip}]) => (
+                        <Tooltip key={name} text={tip}>
+                            <Button size="sm" variant="outline" onClick={() => handleAspectRatioChange(ratio)} className={`${theme === 'playful' ? 'playful-button' : ''} ${theme === 'dark' ? 'dark-mode-button' : ''}`}>
+                                {name}
+                            </Button>
+                        </Tooltip>
+                    ))}
+                </div>
+            </div>
+        )}
+    </div>
+);
+
+const FileItem = ({ file, result, preview, aiFileName, isNaming, namingTimer, convertingFile, handleAiRename, theme }) => {
+    const displaySize = result ? result.convertedSize : (preview ? preview.convertedSize : null);
+    const displayName = aiFileName ? `${aiFileName}.webp` : file.name;
+    const objectUrl = URL.createObjectURL(file);
+
+    return (
+        <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+            <div className="flex items-center gap-3 overflow-hidden">
+                <img src={objectUrl} alt={file.name} className="w-12 h-12 object-cover rounded-md shrink-0" onLoad={() => URL.revokeObjectURL(objectUrl)} />
+                <div className="overflow-hidden">
+                    <p className="text-sm font-medium truncate">{displayName}</p>
+                    <p className="text-xs text-muted-foreground">
+                        {formatBytes(file.size)}
+                        {displaySize !== null && (
+                            <>
+                                <span className="mx-1">→</span>
+                                <span className={result ? 'font-bold' : ''}>
+                                    {result ? '' : 'Est. '}{formatBytes(displaySize)}
+                                </span>
+                            </>
+                        )}
+                    </p>
+                </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+                {isNaming === file.name && (
+                    <div className="flex items-center justify-center h-8 w-24 text-sm text-green-500 font-semibold tabular-nums">
+                        ✨ {namingTimer}s
+                    </div>
+                )}
+                {convertingFile === file.name && !result && (
+                    <div className="flex items-center justify-center h-8 w-24 text-sm text-primary font-semibold">
+                        Converting...
+                    </div>
+                )}
+                {isNaming !== file.name && convertingFile !== file.name && (
+                    <>
+                        <Tooltip text="Rename with AI" className="tooltip-left">
+                            <Button size="icon" variant="ghost" onClick={() => handleAiRename(file)} disabled={isNaming !== null} className="h-8 w-8">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/><path d="m15 5 3 3"/></svg>
+                            </Button>
+                        </Tooltip>
+                        {result && (
+                            <a href={result.webpDataUrl} download={`${displayName.split('.').slice(0, -1).join('.')}.webp`}>
+                                <Button size="sm" variant="outline" className={`${theme === 'playful' ? 'playful-button' : ''} ${theme === 'dark' ? 'dark-mode-button' : ''}`}>Save</Button>
+                            </a>
+                        )}
+                    </>
+                )}
+            </div>
+        </div>
+    );
 };
 
-const themes = ['playful', 'dark'];
+const FileList = ({ files, conversionResults, previewResults, aiFileNames, isNaming, namingTimer, convertingFile, handleAiRename, theme }) => (
+    <div className="space-y-4 max-h-72 file-list-container">
+        {files.map(file => (
+            <FileItem
+                key={file.name}
+                file={file}
+                result={conversionResults[file.name]}
+                preview={previewResults[file.name]}
+                aiFileName={aiFileNames[file.name]}
+                isNaming={isNaming}
+                namingTimer={namingTimer}
+                convertingFile={convertingFile}
+                handleAiRename={handleAiRename}
+                theme={theme}
+            />
+        ))}
+    </div>
+);
 
-// Main App Component
+const Actions = ({ handleBulkConvert, isConverting, files, conversionProgress, allFilesConverted, handleDownloadAll, isZipping, downloadReady, resetState, theme }) => (
+    <div className="mt-6 pt-6 border-t flex flex-col items-center gap-4">
+        <div className="flex flex-wrap justify-center gap-4">
+            <Button onClick={handleBulkConvert} disabled={isConverting || files.length === 0} className={`w-full sm:w-auto grow ${theme === 'playful' ? 'playful-button' : ''} ${theme === 'dark' ? 'dark-mode-button' : ''}`}>
+                {isConverting ? `Converting... ${Math.round(conversionProgress)}%` : `Convert ${files.length} File(s)`}
+            </Button>
+            {allFilesConverted && (
+                <Button
+                    onClick={handleDownloadAll}
+                    disabled={isZipping}
+                    variant="secondary"
+                    className={`w-full sm:w-auto grow relative ${theme === 'playful' ? 'playful-button' : ''} ${theme === 'dark' ? 'dark-mode-button' : ''} ${downloadReady ? 'animated-download-ready' : ''}`}>
+                    <div className="button-inner-bg"></div>
+                    <span>{isZipping ? 'Zipping...' : 'Download All (.zip)'}</span>
+                </Button>
+            )}
+        </div>
+        <Button onClick={resetState} variant="outline" size="sm" className={`w-full max-w-xs ${theme === 'playful' ? 'playful-button' : ''} ${theme === 'dark' ? 'dark-mode-button' : ''}`}>Clear All</Button>
+    </div>
+);
+
 export function App() {
   const [files, setFiles] = useState([]);
   const [aiFileNames, setAiFileNames] = useState({});
@@ -197,14 +321,6 @@ export function App() {
       setConversionResults({});
   };
 
-
-  const handleFileChange = (e) => { if (e.target.files) addFiles(e.target.files); };
-  const handleDrop = (e) => {
-    e.preventDefault(); e.stopPropagation();
-    e.currentTarget.classList.remove('border-primary');
-    if (e.dataTransfer.files) addFiles(e.dataTransfer.files);
-  };
-
   const resetState = () => {
       setFiles([]); setConversionResults({}); setPreviewResults({});
       setSelectedPreset('whytes_hero'); setQuality(presets.whytes_hero.quality);
@@ -212,40 +328,6 @@ export function App() {
       setCustomWidth(''); setCustomHeight(''); setOriginalDimensions(null);
       setAiFileNames({}); setIsNaming(null);
       if(fileInputRef.current) fileInputRef.current.value = "";
-  };
-
-  const convertFileToWebP = (file, qualityValue, resizeOptions, isPreview = false) => {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = (event) => {
-            const img = new Image();
-            img.src = event.target.result;
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                let { width, height } = img;
-
-                if (resizeOptions.width && resizeOptions.height) {
-                    width = parseInt(resizeOptions.width, 10);
-                    height = parseInt(resizeOptions.height, 10);
-                } else if (resizeOptions.maxWidth && img.width > resizeOptions.maxWidth) {
-                    const ratio = resizeOptions.maxWidth / img.width;
-                    width = resizeOptions.maxWidth;
-                    height = img.height * ratio;
-                }
-
-                canvas.width = width;
-                canvas.height = height;
-                ctx.drawImage(img, 0, 0, width, height);
-                const webpDataUrl = canvas.toDataURL('image/webp', parseFloat(qualityValue));
-                const convertedSize = Math.round((webpDataUrl.length * 3) / 4);
-                resolve({ originalName: file.name, originalSize: file.size, webpDataUrl: isPreview ? null : webpDataUrl, convertedSize });
-            };
-            img.onerror = () => reject(new Error(`Could not load image: ${file.name}`));
-        };
-        reader.onerror = () => reject(new Error(`Failed to read file: ${file.name}`));
-    });
   };
   
   const handleBulkConvert = async () => {
@@ -367,26 +449,6 @@ export function App() {
       }
   };
 
-  const handleDragOver = (e) => { e.preventDefault(); e.stopPropagation(); };
-  const handleDragEnter = (e) => { e.preventDefault(); e.stopPropagation(); e.currentTarget.classList.add('border-primary'); };
-  const handleDragLeave = (e) => { e.preventDefault(); e.stopPropagation(); e.currentTarget.classList.remove('border-primary'); };
-  const formatBytes = (bytes, decimals = 2) => {
-    if (!+bytes) return '0 Bytes';
-    const k = 1024;
-    const dm = decimals < 0 ? 0 : decimals;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
-  };
-  
-  const getNextThemeIcon = () => {
-    switch(theme) {
-        case 'playful': return <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-300 group-hover:-rotate-12 active:scale-125"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>;
-        case 'dark': return <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-300 group-hover:rotate-45 active:scale-125"><circle cx="12" cy="12" r="5"/><path d="M12 1v2"/><path d="M12 21v2"/><path d="m4.22 4.22 1.42 1.42"/><path d="m18.36 18.36 1.42 1.42"/><path d="M1 12h2"/><path d="M21 12h2"/><path d="m4.22 19.78 1.42-1.42"/><path d="m18.36 5.64 1.42-1.42"/></svg>;
-        default: return null;
-    }
-  }
-
   const allFilesConverted = files.length > 0 && files.every(f => conversionResults[f.name]);
 
   return (
@@ -400,150 +462,52 @@ export function App() {
             </>
         )}
         <Card className={`w-full transition-all duration-300 ${theme === 'playful' ? 'playful-card' : ''}`}>
-          <CardHeader>
-             <Button onClick={cycleTheme} variant="ghost" size="icon" className="absolute top-4 right-4 h-8 w-8 group">
-                {getNextThemeIcon()}
-                <span className="sr-only">Cycle theme</span>
-            </Button>
-            <CardTitle className="text-2xl bg-amber-400">Bulk Image to WebP Converter</CardTitle>
-            <CardDescription>Drag and drop images to convert them using powerful, one-click presets.</CardDescription>
-          </CardHeader>
+          <Header theme={theme} cycleTheme={cycleTheme} />
           <CardContent>
-            <div
-              className="w-full border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all duration-300 hover:border-primary/80"
-              onDrop={handleDrop} onDragOver={handleDragOver} onDragEnter={handleDragEnter} onDragLeave={handleDragLeave}
-              onClick={() => fileInputRef.current.click()}
-            >
-              <Input type="file" ref={fileInputRef} className="hidden" accept="image/jpeg,image/png,image/gif,image/bmp" onChange={handleFileChange} multiple />
-              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mx-auto text-muted-foreground mb-4"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
-              <p className="text-muted-foreground"><span className="font-semibold text-primary">Click to upload</span> or drag and drop files</p>
-              <p className="text-xs text-muted-foreground mt-1">Bulk conversion is supported</p>
-            </div>
+            <FileUpload fileInputRef={fileInputRef} addFiles={addFiles} />
 
             {error && <p className="text-destructive text-sm mt-4 text-center whitespace-pre-wrap">{error}</p>}
 
             {files.length > 0 && (
               <div className="mt-6">
-                <div className="p-4 border rounded-lg bg-muted/50 mb-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-                        <div>
-                            <Label htmlFor="preset">Optimization Preset</Label>
-                            <Select id="preset" value={selectedPreset} onChange={handlePresetChange}>
-                                {Object.entries(presets).map(([key, preset]) => (
-                                    <option key={key} value={key}>{preset.name}</option>
-                                ))}
-                            </Select>
-                             <p className="text-xs text-muted-foreground mt-1">{presets[selectedPreset].description}</p>
-                        </div>
-                        <div>
-                            <Label htmlFor="quality">Quality: <span className="font-bold text-primary">{Math.round(quality * 100)}</span></Label>
-                            <Slider id="quality" min="0.1" max="1" step="0.01" value={quality} onChange={handleQualitySliderChange} className="w-full" />
-                        </div>
-                    </div>
-                    {selectedPreset === 'custom' && (
-                        <div className="mt-4 pt-4 border-t border-border/50">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <Label htmlFor="width">Width (px)</Label>
-                                    <Input type="number" id="width" value={customWidth} onChange={handleWidthChange} />
-                                </div>
-                                <div>
-                                    <Label htmlFor="height">Height (px)</Label>
-                                    <Input type="number" id="height" value={customHeight} onChange={handleHeightChange} />
-                                </div>
-                            </div>
-                            <div className="flex flex-wrap gap-2 mt-2">
-                                {Object.entries(aspectRatios).map(([name, {ratio, tip}]) => (
-                                    <Tooltip key={name} text={tip}>
-                                        <Button size="sm" variant="outline" onClick={() => handleAspectRatioChange(ratio)} className={`${theme === 'playful' ? 'playful-button' : ''} ${theme === 'dark' ? 'dark-mode-button' : ''}`}>
-                                            {name}
-                                        </Button>
-                                    </Tooltip>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-                </div>
+                <Settings
+                    selectedPreset={selectedPreset}
+                    handlePresetChange={handlePresetChange}
+                    quality={quality}
+                    handleQualitySliderChange={handleQualitySliderChange}
+                    customWidth={customWidth}
+                    handleWidthChange={handleWidthChange}
+                    customHeight={customHeight}
+                    handleHeightChange={handleHeightChange}
+                    handleAspectRatioChange={handleAspectRatioChange}
+                    theme={theme}
+                />
 
                 {isConverting && <ProgressBar progress={conversionProgress} />}
 
-                <div className="space-y-4 max-h-72 file-list-container">
-                    {files.map(file => {
-                        const result = conversionResults[file.name];
-                        const preview = previewResults[file.name];
-                        const displaySize = result ? result.convertedSize : (preview ? preview.convertedSize : null);
-                        const displayName = aiFileNames[file.name] ? `${aiFileNames[file.name]}.webp` : file.name;
-                        const objectUrl = URL.createObjectURL(file);
-
-                        return (
-                            <div key={file.name} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                                
-                                <div className="flex items-center gap-3 overflow-hidden">
-                                    <img src={objectUrl} alt={file.name} className="w-12 h-12 object-cover rounded-md shrink-0" onLoad={() => URL.revokeObjectURL(objectUrl)} />
-                                    <div className="overflow-hidden">
-                                        <p className="text-sm font-medium truncate">{displayName}</p>
-                                        <p className="text-xs text-muted-foreground">
-                                            {formatBytes(file.size)}
-                                            {displaySize !== null && (
-                                                <>
-                                                    <span className="mx-1">→</span>
-                                                    <span className={result ? 'font-bold' : ''}>
-                                                        {result ? '' : 'Est. '}{formatBytes(displaySize)}
-                                                    </span>
-                                                </>
-                                            )}
-                                        </p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-2 shrink-0">
-                                    {isNaming === file.name && (
-                                        <div className="flex items-center justify-center h-8 w-24 text-sm text-green-500 font-semibold tabular-nums">
-                                            ✨ {namingTimer}s
-                                        </div>
-                                    )}
-                                    {convertingFile === file.name && !result && (
-                                        <div className="flex items-center justify-center h-8 w-24 text-sm text-primary font-semibold">
-                                            Converting...
-                                        </div>
-                                    )}
-                                    {isNaming !== file.name && convertingFile !== file.name && (
-                                        <>
-                                            <Tooltip text="Rename with AI" className="tooltip-left">
-                                                <Button size="icon" variant="ghost" onClick={() => handleAiRename(file)} disabled={isNaming !== null} className="h-8 w-8">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/><path d="m15 5 3 3"/></svg>
-                                                </Button>
-                                            </Tooltip>
-                                            {result && (
-                                                <a href={result.webpDataUrl} download={`${displayName.split('.').slice(0, -1).join('.')}.webp`}>
-                                                    <Button size="sm" variant="outline" className={`${theme === 'playful' ? 'playful-button' : ''} ${theme === 'dark' ? 'dark-mode-button' : ''}`}>Save</Button>
-                                                </a>
-                                            )}
-                                        </>
-                                    )}
-                                </div>
-                            </div>
-                        )
-                    })}
-                </div>
-                <div className="mt-6 pt-6 border-t flex flex-col items-center gap-4">
-                    <div className="flex flex-wrap justify-center gap-4">
-                        <Button onClick={handleBulkConvert} disabled={isConverting || files.length === 0} className={`w-full sm:w-auto grow ${theme === 'playful' ? 'playful-button' : ''} ${theme === 'dark' ? 'dark-mode-button' : ''}`}>
-                            {isConverting ? `Converting... ${Math.round(conversionProgress)}%` : `Convert ${files.length} File(s)`}
-                        </Button>
-                        {allFilesConverted && (
-                            <Button
-                                onClick={handleDownloadAll}
-                                disabled={isZipping}
-                                variant="secondary"
-                                className={`w-full sm:w-auto grow relative ${theme === 'playful' ? 'playful-button' : ''} ${theme === 'dark' ? 'dark-mode-button' : ''} ${downloadReady ? 'animated-download-ready' : ''}`}
-                            >
-                                <div className="button-inner-bg"></div>
-                                <span>{isZipping ? 'Zipping...' : 'Download All (.zip)'}</span>
-                            </Button>
-                        )}
-                    </div>
-                    <Button onClick={resetState} variant="outline" size="sm" className={`w-full max-w-xs ${theme === 'playful' ? 'playful-button' : ''} ${theme === 'dark' ? 'dark-mode-button' : ''}`}>Clear All</Button>
-                </div>
+                <FileList
+                    files={files}
+                    conversionResults={conversionResults}
+                    previewResults={previewResults}
+                    aiFileNames={aiFileNames}
+                    isNaming={isNaming}
+                    namingTimer={namingTimer}
+                    convertingFile={convertingFile}
+                    handleAiRename={handleAiRename}
+                    theme={theme}
+                />
+                <Actions
+                    handleBulkConvert={handleBulkConvert}
+                    isConverting={isConverting}
+                    files={files}
+                    conversionProgress={conversionProgress}
+                    allFilesConverted={allFilesConverted}
+                    handleDownloadAll={handleDownloadAll}
+                    isZipping={isZipping}
+                    downloadReady={downloadReady}
+                    resetState={resetState}
+                    theme={theme}
+                />
               </div>
             )}
           </CardContent>
