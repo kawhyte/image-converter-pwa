@@ -60,15 +60,25 @@ body {
     overflow: hidden;
 }
 .animated-download-ready::before {
-    content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-    background: conic-gradient(from 180deg at 50% 50%, #34a853, #ffd314, #ff4641, #3186ff, #34a853);
-    animation: rotate 4s linear infinite;
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: conic-gradient(from 180deg at 50% 50%, rgba(52, 168, 83, 0.5), rgba(255, 211, 20, 0.5), rgba(255, 70, 65, 0.5), rgba(49, 134, 255, 0.5), rgba(52, 168, 83, 0.5));
+    /* animation: infinite; */
 }
 .animated-download-ready .button-inner-bg {
-    position: absolute; inset: 2px; background-color: hsl(var(--secondary)); border-radius: 9999px; z-index: 0;
+    position: absolute;
+    inset: 2px;
+    background-color: hsl(var(--secondary));
+    border-radius: 9999px;
+    z-index: 0;
 }
 .animated-download-ready > span {
-    position: relative; z-index: 1;
+    position: relative;
+    z-index: 1;
 }
 @keyframes rotate {
     from { transform: rotate(0deg); }

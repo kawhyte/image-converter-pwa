@@ -9,11 +9,11 @@ export const FileItem = ({ file, result, preview, aiFileName, isNaming, namingTi
     const objectUrl = URL.createObjectURL(file);
 
     return (
-        <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+        <div className="flex items-center justify-between p-3 bg-slate-800 border border-muted-foreground rounded-lg">
             <div className="flex items-center gap-3 overflow-hidden">
                 <img src={objectUrl} alt={file.name} className="w-12 h-12 object-cover rounded-md shrink-0" onLoad={() => URL.revokeObjectURL(objectUrl)} />
                 <div className="overflow-hidden">
-                    <p className="text-sm font-medium truncate">{displayName}</p>
+                    <p className="text-sm font-medium text-slate-300 truncate">{displayName}</p>
                     <p className="text-xs text-muted-foreground">
                         {formatBytes(file.size)}
                         {displaySize !== null && (
@@ -42,8 +42,8 @@ export const FileItem = ({ file, result, preview, aiFileName, isNaming, namingTi
                     <>
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <Button size="icon" variant="ghost" onClick={() => handleAiRename(file)} disabled={isNaming !== null} className="h-8 w-8">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/><path d="m15 5 3 3"/></svg>
+                                <Button  size="icon" variant="ghost" onClick={() => handleAiRename(file)} disabled={isNaming !== null} className="h-8 w-8">
+                                    <svg className='text-foreground' xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/><path d="m15 5 3 3"/></svg>
                                 </Button>
                             </TooltipTrigger>
                             <TooltipContent>

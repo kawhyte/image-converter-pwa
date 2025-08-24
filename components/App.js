@@ -53,7 +53,7 @@ export function App() {
             </div>
         </div>
         <div className="w-full max-w-4xl mx-auto relative">
-          <Card className="w-full transition-all duration-150 ease-in-out rounded-3xl border border-muted-foreground bg-muted text-base shadow-xl focus-within:border-foreground/20 hover:border-foreground/10 focus-within:hover:border-foreground/20">
+          <Card className="w-full transition-all duration-150 ease-in-out rounded-3xl border border-muted-foreground text-base shadow-xl focus-within:border-foreground/20 hover:border-foreground/10 focus-within:hover:border-foreground/20 bg-slate-900">
             <Header />
             <CardContent>
               <FileUpload fileInputRef={fileInputRef} addFiles={addFiles} />
