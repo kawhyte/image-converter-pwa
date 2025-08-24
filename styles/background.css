@@ -1,0 +1,103 @@
+/*
+ * Core styles for the animated background
+*/
+
+/* The main container that holds the entire background effect.
+ * It's fixed to cover the whole viewport and sits behind all other content.
+*/
+.background-gradient-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden; /* Hide parts of blobs that go off-screen */
+    z-index: -1; /* Place it behind all other content */
+}
+
+/* * This is the "secret sauce". A very large blur filter is applied to all
+ * child elements (the colored blobs), which gives them their soft,
+ * ethereal, and blended appearance.
+*/
+.blur-filter {
+    filter: blur(120px);
+    width: 100%;
+    height: 100%;
+}
+
+/* * Base styles for each colored "blob".
+ * They are absolutely positioned to allow them to be placed anywhere
+ * within the container and overlap each other.
+*/
+.ellipse {
+    position: absolute;
+    border-radius: 50%; /* Makes the divs into circles */
+    /* The animation is applied here. It combines two animations:
+     * 'appear' runs for 1.5s to fade the blob in.
+     * 'scale' runs for 5s to give it a subtle growth effect.
+     * 'forwards' ensures the elements stay at their final animation state.
+    */
+    animation: appear 1.5s ease forwards, scale 5s ease forwards;
+}
+
+/*
+ * Specific styles for each of the four colored blobs.
+ * Each has a unique background created with a radial-gradient,
+ * a specific size (width/height), and is positioned differently.
+ * The colors and positions are sampled from the original website.
+*/
+.ellipse-1 {
+    background: radial-gradient(circle at 50% 50%, rgba(204, 153, 255, 0.4) 0%, rgba(255, 255, 255, 0) 70%);
+    width: 600px;
+    height: 600px;
+    top: -100px;
+    left: -200px;
+}
+
+.ellipse-2 {
+    background: radial-gradient(circle at 50% 50%, rgba(255, 153, 204, 0.4) 0%, rgba(255, 255, 255, 0) 70%);
+    width: 550px;
+    height: 550px;
+    top: -150px;
+    right: -150px;
+}
+
+.ellipse-3 {
+    background: radial-gradient(circle at 50% 50%, rgba(153, 204, 255, 0.4) 0%, rgba(255, 255, 255, 0) 70%);
+    width: 500px;
+    height: 500px;
+    bottom: -200px;
+    left: 5%;
+}
+
+.ellipse-4 {
+    background: radial-gradient(circle at 50% 50%, rgba(255, 255, 153, 0.35) 0%, rgba(255, 255, 255, 0) 70%);
+    width: 450px;
+    height: 450px;
+    bottom: -150px;
+    right: 0;
+}
+
+/*
+ * Keyframe Animations
+*/
+
+/* Fades the element from completely transparent to fully opaque */
+@keyframes appear {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Scales the element from 80% of its size to its full size */
+@keyframes scale {
+    from {
+        transform: scale(0.8);
+    }
+    to {
+        transform: scale(1);
+    }
+}
