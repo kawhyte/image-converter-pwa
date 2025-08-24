@@ -56,7 +56,7 @@ export function App() {
     <span className="pt-0.5 tracking-tight md:pt-0">
         Bulk Image to WebP Converter
     </span>
-    <div className="flex flex-col gap-1.5 ml-2 hidden sm:ml-3 md:ml-4 md:flex">
+    <div className=" flex-col gap-1.5 ml-2 hidden sm:ml-3 md:ml-4 md:flex">
         <Images className="flex h-[22px] sm:h-[28px] md:h-[36px]" />
     </div>
 </h1>
