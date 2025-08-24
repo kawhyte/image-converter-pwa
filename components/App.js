@@ -2,8 +2,9 @@ import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Images } from 'lucide-react';
 import { useImageConverter } from '../hooks/useImageConverter';
-import { Header } from './converter/Header';
+
 import { FileUpload } from './converter/FileUpload';
 import { Settings } from './converter/Settings';
 import { FileList } from './converter/FileList';
@@ -42,9 +43,32 @@ export function App() {
   } = useImageConverter();
 
   return (
-    <TooltipProvider>
-      <div className="text-foreground min-h-screen w-full flex items-center justify-center p-4 transition-colors duration-300">
-        <div className="background-gradient-container">
+<> 
+
+<TooltipProvider>
+      <div className="text-foreground min-h-screen w-full flex flex-col items-center justify-center p-4 transition-colors duration-300">
+        
+      
+      
+      <div className="mb-4 flex flex-col items-center px-4 text-center md:mb-10">
+<div className="flex w-full flex-col items-center justify-center gap-2"></div>
+<h1 className="mb-2 flex items-center gap-1 text-2xl font-medium leading-none text-foreground sm:text-3xl md:mb-2.5 md:gap-0 md:text-5xl">
+    <span className="pt-0.5 tracking-tight md:pt-0">
+        Bulk Image to WebP Converter
+    </span>
+    <div className="flex flex-col gap-1.5 ml-2 hidden sm:ml-3 md:ml-4 md:flex">
+        <Images className="flex h-[22px] sm:h-[28px] md:h-[36px]" />
+    </div>
+</h1>
+<p className="mb-6 max-w-[25ch] text-center text-lg leading-tight text-foreground/65 md:max-w-full md:text-xl">
+    Drag and drop images to convert them using powerful, one-click presets.
+</p>
+</div>
+      
+      
+      
+      
+      <div className="background-gradient-container">
             <div className="blur-filter">
                 <div className="ellipse ellipse-1"></div>
                 <div className="ellipse ellipse-2"></div>
@@ -54,7 +78,7 @@ export function App() {
         </div>
         <div className="w-full max-w-4xl mx-auto relative">
           <Card className="w-full transition-all duration-150 ease-in-out rounded-3xl border border-muted-foreground text-base shadow-xl focus-within:border-foreground/20 hover:border-foreground/10 focus-within:hover:border-foreground/20 bg-slate-900">
-            <Header />
+            
             <CardContent>
               <FileUpload fileInputRef={fileInputRef} addFiles={addFiles} />
 
@@ -104,5 +128,6 @@ export function App() {
         </div>
       </div>
     </TooltipProvider>
+    </>
   );
 }
