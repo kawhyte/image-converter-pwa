@@ -1,13 +1,15 @@
 import Head from 'next/head';
 import Script from 'next/script';
 import { App } from '../components/App'; // We will move the component logic here
+import { Navbar } from '../components/layout/Navbar';
 
 export default function Home() {
   return (
     <div>
+      <Navbar />
       <Head>
-        <title>Offline Image to WebP Converter</title>
-        <meta name="description" content="Offline Image to WebP Converter PWA" />
+        <title>Image to WebP Converter</title>
+        <meta name="description" content="Image to WebP Converter PWA" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
