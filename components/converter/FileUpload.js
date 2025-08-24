@@ -14,7 +14,7 @@ export const FileUpload = ({ fileInputRef, addFiles }) => {
 
     return (
         <div
-            className="w-full border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all duration-300 hover:border-primary/80 bg-slate-800"
+            className="w-full border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all duration-300 hover:border-primary/80 bg-card"
             onDrop={handleDrop} onDragOver={handleDragOver} onDragEnter={handleDragEnter} onDragLeave={handleDragLeave}
             onClick={() => fileInputRef.current.click()}
         >

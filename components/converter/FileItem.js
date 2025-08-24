@@ -9,11 +9,11 @@ export const FileItem = ({ file, result, preview, aiFileName, isNaming, namingTi
     const objectUrl = URL.createObjectURL(file);
 
     return (
-        <div className="flex items-center justify-between p-3 bg-slate-800 border border-muted-foreground rounded-lg">
+        <div className="flex items-center justify-between p-3 bg-card border rounded-lg">
             <div className="flex items-center gap-3 overflow-hidden">
                 <img src={objectUrl} alt={file.name} className="w-12 h-12 object-cover rounded-md shrink-0" onLoad={() => URL.revokeObjectURL(objectUrl)} />
                 <div className="overflow-hidden">
-                    <p className="text-sm font-medium text-slate-300 truncate">{displayName}</p>
+                    <p className="text-sm font-medium text-foreground truncate">{displayName}</p>
                     <p className="text-xs text-muted-foreground">
                         {formatBytes(file.size)}
                         {displaySize !== null && (

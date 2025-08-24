@@ -8,10 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export const Settings = ({ selectedPreset, handlePresetChange, quality, handleQualitySliderChange, customWidth, handleWidthChange, customHeight, handleHeightChange, handleAspectRatioChange }) => (
-    <div className="p-4 border rounded-lg mb-6 bg-slate-900">
+    <div className="p-6 border rounded-2xl mb-6 bg-card">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-            <div className='text-stone-400'>
-                <Label className=' text-stone-400 mb-3' htmlFor="preset">Optimization Preset</Label>
+            <div className='text-muted-foreground'>
+                <Label className='text-muted-foreground mb-3' htmlFor="preset">Optimization Preset</Label>
                 <Select id="preset" value={selectedPreset} onValueChange={(value) => handlePresetChange({ target: { value } })}>
                     <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select a preset" />
@@ -24,13 +24,13 @@ export const Settings = ({ selectedPreset, handlePresetChange, quality, handleQu
                 </Select>
                 <p className="text-xs text-muted-foreground mt-1">{presets[selectedPreset].description}</p>
             </div>
-            <div className='text-stone-400 '>
-                <Label className='mb-2' htmlFor="quality">Quality: <span className="font-bold text-stone-400">{Math.round(quality * 100)}</span></Label>
-                <Slider id="quality" min={0.1} max={1} step={0.01} value={[quality]} onValueChange={(value) => handleQualitySliderChange({ target: { value: value[0] } })} className="w-full bg-stone-400" />
+            <div className='text-muted-foreground'>
+                <Label className='mb-2' htmlFor="quality">Quality: <span className="font-bold text-foreground">{Math.round(quality * 100)}</span></Label>
+                <Slider id="quality" min={0.1} max={1} step={0.01} value={[quality]} onValueChange={(value) => handleQualitySliderChange({ target: { value: value[0] } })} className="w-full" />
             </div>
         </div>
         {selectedPreset === 'custom' && (
-            <div className="mt-4 pt-4 border-t border-border/50 text-stone-400">
+            <div className="mt-4 pt-4 border-t border-border/50 text-muted-foreground">
                 <div className="grid grid-cols-2 gap-4">
                     <div>
                         <Label className='mb-2' htmlFor="width">Width (px)</Label>
