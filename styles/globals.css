@@ -77,27 +77,7 @@ body {
 .dark .dark-mode-button:hover {
     border-color: hsl(var(--ring)); background-color: hsl(var(--accent));
 }
-.tooltip {
-    position: relative; display: inline-block;
-}
-.tooltip .tooltiptext {
-    visibility: hidden; width: 160px; background-color: hsl(var(--card)); color: hsl(var(--card-foreground)); text-align: center;
-    border-radius: 6px; border: 1px solid hsl(var(--border)); padding: 8px; position: absolute; z-index: 50; bottom: 125%;
-    left: 50%; margin-left: -80px; opacity: 0; transition: opacity 0.3s; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-.tooltip .tooltiptext::after {
-    content: ""; position: absolute; top: 100%; left: 50%; margin-left: -5px; border-width: 5px; border-style: solid;
-    border-color: hsl(var(--border)) transparent transparent transparent;
-}
-.tooltip.tooltip-left .tooltiptext {
-    bottom: 50%; transform: translateY(50%); right: 110%; left: auto; margin-left: 0;
-}
-.tooltip.tooltip-left .tooltiptext::after {
-    top: 50%; left: 100%; margin-top: -5px; border-color: transparent transparent transparent hsl(var(--border));
-}
-.tooltip:hover .tooltiptext {
-    visibility: visible; opacity: 1;
-}
+
 .file-list-container {
     overflow-y: auto; overflow-x: visible; padding-bottom: 8px;
 }

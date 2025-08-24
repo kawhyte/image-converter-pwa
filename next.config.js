@@ -10,6 +10,9 @@ console.log('Current NODE_ENV:', process.env.NODE_ENV);
 
 const nextConfig = {
   reactStrictMode: true,
+  env: {
+    NEXT_PUBLIC_GEMINI_API_KEY: process.env.NEXT_PUBLIC_GEMINI_API_KEY,
+  },
 };
 
 module.exports = withPWA(nextConfig);

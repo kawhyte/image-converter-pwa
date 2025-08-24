@@ -14,7 +14,8 @@ import { Label } from "@/components/ui/label"
 import { Slider } from "@/components/ui/slider"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Progress } from "@/components/ui/progress"
-import { Tooltip } from './ui/Tooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
 
 const Header = ({ theme, cycleTheme }) => {
     const getNextThemeIcon = () => {
@@ -32,6 +33,7 @@ const Header = ({ theme, cycleTheme }) => {
                 <span className="sr-only">Cycle theme</span>
             </Button>
             <CardTitle className="text-2xl bg-amber-400">Bulk Image to WebP Converter</CardTitle>
+
             <CardDescription>Drag and drop images to convert them using powerful, one-click presets.</CardDescription>
         </CardHeader>
     );
@@ -96,12 +98,21 @@ const Settings = ({ selectedPreset, handlePresetChange, quality, handleQualitySl
                         <Input type="number" id="height" value={customHeight} onChange={handleHeightChange} />
                     </div>
                 </div>
+
+
+
+                
                 <div className="flex flex-wrap gap-2 mt-2">
                     {Object.entries(aspectRatios).map(([name, {ratio, tip}]) => (
-                        <Tooltip key={name} text={tip}>
-                            <Button size="sm" variant="outline" onClick={() => handleAspectRatioChange(ratio)} className={`${theme === 'playful' ? 'playful-button' : ''} ${theme === 'dark' ? 'dark-mode-button' : ''}`}>
-                                {name}
-                            </Button>
+                        <Tooltip key={name}>
+                            <TooltipTrigger asChild>
+                                <Button size="sm" variant="outline" onClick={() => handleAspectRatioChange(ratio)} className={`${theme === 'playful' ? 'playful-button' : ''} ${theme === 'dark' ? 'dark-mode-button' : ''}`}>
+                                    {name}
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>{tip}</p>
+                            </TooltipContent>
                         </Tooltip>
                     ))}
                 </div>
@@ -147,10 +158,15 @@ const FileItem = ({ file, result, preview, aiFileName, isNaming, namingTimer, co
                 )}
                 {isNaming !== file.name && convertingFile !== file.name && (
                     <>
-                        <Tooltip text="Rename with AI" className="tooltip-left">
-                            <Button size="icon" variant="ghost" onClick={() => handleAiRename(file)} disabled={isNaming !== null} className="h-8 w-8">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/><path d="m15 5 3 3"/></svg>
-                            </Button>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button size="icon" variant="ghost" onClick={() => handleAiRename(file)} disabled={isNaming !== null} className="h-8 w-8">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/><path d="m15 5 3 3"/></svg>
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>Rename with AI</p>
+                            </TooltipContent>
                         </Tooltip>
                         {result && (
                             <a href={result.webpDataUrl} download={`${displayName.split('.').slice(0, -1).join('.')}.webp`}>
@@ -423,12 +439,15 @@ ${e.message}`);
                     contents: [{
                         parts: [
                             { text: "Generate a concise, descriptive, SEO-friendly filename for this image in under 30 characters. Use hyphens instead of spaces. Do not include the file extension." },
-                            { inlineData: { mimeType: file.type, data: base64ImageData } }
+                            { inlineData: { mimeType: file.type, data: base64Data } }
                         ]
                     }],
                 };
-                const apiKey = "AIzaSyCYUZE714XguV97WKL3I8UlGQgcXvW9PNU"; // API key will be proxied by the environment.
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+                if (!apiKey) {
+                    throw new Error("API key is not configured. Please set NEXT_PUBLIC_GEMINI_API_KEY in your environment.");
+                }
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
                 
                 const response = await fetch(apiUrl, {
                     method: 'POST',
@@ -464,67 +483,69 @@ ${e.message}`);
   const allFilesConverted = files.length > 0 && files.every(f => conversionResults[f.name]);
 
   return (
-    <div className="bg-background text-foreground min-h-screen w-full flex items-center justify-center p-4 transition-colors duration-300">
-      <div className="w-full max-w-4xl mx-auto relative">
-        {theme === 'playful' && (
-            <>
-                <svg width="60" height="60" viewBox="0 0 100 100" className="absolute -top-8 -left-10 text-primary -z-10"><path d="M10 50 C 20 20, 40 20, 50 50 S 70 80, 90 50" stroke="currentColor" strokeWidth="5" fill="none" strokeLinecap="round"/></svg>
-                <svg width="40" height="40" viewBox="0 0 24 24" className="absolute -top-5 -right-5 text-primary"><path d="m18 3-3 3 3 3 3-3-3-3Z" stroke="currentColor" fill="currentColor"/><path d="m6 3-3 3 3 3 3-3-3-3Z" stroke="currentColor" fill="currentColor"/></svg>
-                <svg width="40" height="40" viewBox="0 0 24 24" className="absolute -bottom-5 -left-5 text-primary"><path d="m18 3-3 3 3 3 3-3-3-3Z" stroke="currentColor" fill="currentColor" transform="translate(0, 18) scale(0.8)"/><path d="m6 3-3 3 3 3 3-3-3-3Z" stroke="currentColor" fill="currentColor" transform="translate(0, 18) scale(0.8)"/></svg>
-            </>
-        )}
-        <Card className={`w-full transition-all duration-300 ${theme === 'playful' ? 'playful-card' : ''}`}>
-          <Header theme={theme} cycleTheme={cycleTheme} />
-          <CardContent>
-            <FileUpload fileInputRef={fileInputRef} addFiles={addFiles} />
+    <TooltipProvider>
+      <div className="bg-background text-foreground min-h-screen w-full flex items-center justify-center p-4 transition-colors duration-300">
+        <div className="w-full max-w-4xl mx-auto relative">
+          {theme === 'playful' && (
+              <>
+                  <svg width="60" height="60" viewBox="0 0 100 100" className="absolute -top-8 -left-10 text-primary -z-10"><path d="M10 50 C 20 20, 40 20, 50 50 S 70 80, 90 50" stroke="currentColor" strokeWidth="5" fill="none" strokeLinecap="round"/></svg>
+                  <svg width="40" height="40" viewBox="0 0 24 24" className="absolute -top-5 -right-5 text-primary"><path d="m18 3-3 3 3 3 3-3-3-3Z" stroke="currentColor" fill="currentColor"/><path d="m6 3-3 3 3 3 3-3-3-3Z" stroke="currentColor" fill="currentColor"/></svg>
+                  <svg width="40" height="40" viewBox="0 0 24 24" className="absolute -bottom-5 -left-5 text-primary"><path d="m18 3-3 3 3 3 3-3-3-3Z" stroke="currentColor" fill="currentColor" transform="translate(0, 18) scale(0.8)"/><path d="m6 3-3 3 3 3 3-3-3-3Z" stroke="currentColor" fill="currentColor" transform="translate(0, 18) scale(0.8)"/></svg>
+              </>
+          )}
+          <Card className={`w-full transition-all duration-300 ${theme === 'playful' ? 'playful-card' : ''}`}>
+            <Header theme={theme} cycleTheme={cycleTheme} />
+            <CardContent>
+              <FileUpload fileInputRef={fileInputRef} addFiles={addFiles} />
 
-            {error && <p className="text-destructive text-sm mt-4 text-center whitespace-pre-wrap">{error}</p>}
+              {error && <p className="text-destructive text-sm mt-4 text-center whitespace-pre-wrap">{error}</p>}
 
-            {files.length > 0 && (
-              <div className="mt-6">
-                <Settings
-                    selectedPreset={selectedPreset}
-                    handlePresetChange={handlePresetChange}
-                    quality={quality}
-                    handleQualitySliderChange={handleQualitySliderChange}
-                    customWidth={customWidth}
-                    handleWidthChange={handleWidthChange}
-                    customHeight={customHeight}
-                    handleHeightChange={handleHeightChange}
-                    handleAspectRatioChange={handleAspectRatioChange}
-                    theme={theme}
-                />
+              {files.length > 0 && (
+                <div className="mt-6">
+                  <Settings
+                      selectedPreset={selectedPreset}
+                      handlePresetChange={handlePresetChange}
+                      quality={quality}
+                      handleQualitySliderChange={handleQualitySliderChange}
+                      customWidth={customWidth}
+                      handleWidthChange={handleWidthChange}
+                      customHeight={customHeight}
+                      handleHeightChange={handleHeightChange}
+                      handleAspectRatioChange={handleAspectRatioChange}
+                      theme={theme}
+                  />
 
-                {isConverting && <Progress value={conversionProgress} />}
+                  {isConverting && <Progress value={conversionProgress} />}
 
-                <FileList
-                    files={files}
-                    conversionResults={conversionResults}
-                    previewResults={previewResults}
-                    aiFileNames={aiFileNames}
-                    isNaming={isNaming}
-                    namingTimer={namingTimer}
-                    convertingFile={convertingFile}
-                    handleAiRename={handleAiRename}
-                    theme={theme}
-                />
-                <Actions
-                    handleBulkConvert={handleBulkConvert}
-                    isConverting={isConverting}
-                    files={files}
-                    conversionProgress={conversionProgress}
-                    allFilesConverted={allFilesConverted}
-                    handleDownloadAll={handleDownloadAll}
-                    isZipping={isZipping}
-                    downloadReady={downloadReady}
-                    resetState={resetState}
-                    theme={theme}
-                />
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  <FileList
+                      files={files}
+                      conversionResults={conversionResults}
+                      previewResults={previewResults}
+                      aiFileNames={aiFileNames}
+                      isNaming={isNaming}
+                      namingTimer={namingTimer}
+                      convertingFile={convertingFile}
+                      handleAiRename={handleAiRename}
+                      theme={theme}
+                  />
+                  <Actions
+                      handleBulkConvert={handleBulkConvert}
+                      isConverting={isConverting}
+                      files={files}
+                      conversionProgress={conversionProgress}
+                      allFilesConverted={allFilesConverted}
+                      handleDownloadAll={handleDownloadAll}
+                      isZipping={isZipping}
+                      downloadReady={downloadReady}
+                      resetState={resetState}
+                      theme={theme}
+                  />
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
-    </div>
+    </TooltipProvider>
   );
 }
