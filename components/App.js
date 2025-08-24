@@ -54,7 +54,7 @@ export function App() {
 <div className="flex w-full flex-col items-center justify-center gap-2"></div>
 <h1 className="mb-2 flex items-center gap-1 text-2xl font-medium leading-none text-foreground sm:text-3xl md:mb-2.5 md:gap-0 md:text-5xl">
     <span className="pt-0.5 tracking-tight md:pt-0">
-        Bulk Image to WebP Converter
+        Bulk JPEG to WebP Converter
     </span>
     <div className=" flex-col gap-1.5 ml-2 hidden sm:ml-3 md:ml-4 md:flex">
         <Images className="flex h-[22px] sm:h-[28px] md:h-[36px]" />
