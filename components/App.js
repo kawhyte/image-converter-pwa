@@ -1,13 +1,19 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useDebounce } from '../hooks/useDebounce';
 import { presets, aspectRatios, themes, convertFileToWebP, formatBytes } from '../lib/utils';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from './ui/Card';
-import { Button } from './ui/Button';
-import { Input } from './ui/Input';
-import { Label } from './ui/Label';
-import { Slider } from './ui/Slider';
-import { Select } from './ui/Select';
-import { ProgressBar } from './ui/ProgressBar';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Slider } from "@/components/ui/slider"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Progress } from "@/components/ui/progress"
 import { Tooltip } from './ui/Tooltip';
 
 const Header = ({ theme, cycleTheme }) => {
@@ -61,16 +67,21 @@ const Settings = ({ selectedPreset, handlePresetChange, quality, handleQualitySl
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
             <div>
                 <Label htmlFor="preset">Optimization Preset</Label>
-                <Select id="preset" value={selectedPreset} onChange={handlePresetChange}>
-                    {Object.entries(presets).map(([key, preset]) => (
-                        <option key={key} value={key}>{preset.name}</option>
-                    ))}
+                <Select id="preset" value={selectedPreset} onValueChange={(value) => handlePresetChange({ target: { value } })}>
+                    <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select a preset" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {Object.entries(presets).map(([key, preset]) => (
+                            <SelectItem key={key} value={key}>{preset.name}</SelectItem>
+                        ))}
+                    </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground mt-1">{presets[selectedPreset].description}</p>
             </div>
             <div>
                 <Label htmlFor="quality">Quality: <span className="font-bold text-primary">{Math.round(quality * 100)}</span></Label>
-                <Slider id="quality" min="0.1" max="1" step="0.01" value={quality} onChange={handleQualitySliderChange} className="w-full" />
+                <Slider id="quality" min={0.1} max={1} step={0.01} value={[quality]} onValueChange={(value) => handleQualitySliderChange({ target: { value: value[0] } })} className="w-full" />
             </div>
         </div>
         {selectedPreset === 'custom' && (
@@ -354,7 +365,8 @@ export function App() {
             setConversionResults(prev => ({...prev, ...newResults}));
         } catch (e) {
             console.error(e);
-            setError(prevError => `${prevError}\n${e.message}`);
+            setError(prevError => `${prevError}
+${e.message}`);
         }
         setConversionProgress(((i + 1) / files.length) * 100);
     }
@@ -406,7 +418,7 @@ export function App() {
           reader.readAsDataURL(file);
           reader.onload = async (event) => {
               try {
-                const base64ImageData = event.target.result.split(',')[1];
+                const base64Data = event.target.result.split(',')[1];
                 const payload = {
                     contents: [{
                         parts: [
@@ -483,7 +495,7 @@ export function App() {
                     theme={theme}
                 />
 
-                {isConverting && <ProgressBar progress={conversionProgress} />}
+                {isConverting && <Progress value={conversionProgress} />}
 
                 <FileList
                     files={files}
