@@ -1,7 +1,7 @@
 {
   "name": "Image Converter PWA",
   "short_name": "ImageConverter",
-  "description": "An offline-first image to WebP converter.",
+  "description": "An PWA-first image to WebP converter.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f8f3ef",
