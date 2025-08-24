@@ -18,6 +18,6 @@ export const Actions = ({ handleBulkConvert, isConverting, files, conversionProg
                 </Button>
             )}
         </div>
-        <Button onClick={resetState} variant="outline" size="sm" className="w-full max-w-xs">Clear All</Button>
+        <Button onClick={resetState} variant="outline-primary" size="sm" className="w-full max-w-xs text-foreground">Clear All</Button>
     </div>
 );

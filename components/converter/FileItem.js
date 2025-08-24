@@ -52,7 +52,7 @@ export const FileItem = ({ file, result, preview, aiFileName, isNaming, namingTi
                         </Tooltip>
                         {result && (
                             <a href={result.webpDataUrl} download={`${displayName.split('.').slice(0, -1).join('.')}.webp`}>
-                                <Button size="sm" variant="outline">Save</Button>
+                                <Button size="sm" variant="outline-primary" className="text-foreground">Save</Button>
                             </a>
                         )}
                     </>
