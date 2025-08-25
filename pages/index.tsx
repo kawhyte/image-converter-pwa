@@ -1,9 +1,9 @@
 import Head from 'next/head';
 import Script from 'next/script';
-import { App } from '../components/App'; // We will move the component logic here
-import { Navbar } from '../components/layout/Navbar';
+import App from '../components/App'; // We will move the component logic here
+import Navbar from '../components/layout/Navbar';
 
-export default function Home() {
+const Home: React.FC = () => {
   return (
     <div>
       <Navbar />
@@ -21,4 +21,6 @@ export default function Home() {
       <Script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" strategy="lazyOnload" />
     </div>
   );
-}
+};
+
+export default Home;
