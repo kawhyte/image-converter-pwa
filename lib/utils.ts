@@ -16,19 +16,19 @@ export const presets: { [key: string]: Preset } = {
   whytes_hero: {
     name: 'Website Hero',
     description: 'High-quality preset for hero images.',
-    quality: 80,
+    quality: 80, // Quality as percentage (0-100)
     maxWidth: 1920,
   },
   thumbnail: {
     name: 'Blog Thumbnails',
     description: 'High-quality preset for hero images.',
-    quality: 80,
+    quality: 80, // Quality as percentage (0-100)
     maxWidth: 1200,
   },
   custom: {
     name: 'Custom',
     description: 'Custom settings.',
-    quality: 75,
+    quality: 75, // Quality as percentage (0-100)
     maxWidth: null,
   }
 };

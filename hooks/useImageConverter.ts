@@ -27,6 +27,8 @@ export function useImageConverter() {
   const [previewResults, setPreviewResults] = useState<ConversionResults>({});
   const [selectedPreset, setSelectedPreset] = useState<string>('whytes_hero');
   const [quality, setQuality] = useState<number>(presets.whytes_hero.quality);
+  
+
   const [customWidth, setCustomWidth] = useState<number | ''>('');
   const [customHeight, setCustomHeight] = useState<number | ''>('');
   const [originalDimensions, setOriginalDimensions] = useState<OriginalDimensions | null>(null);
@@ -47,27 +49,55 @@ export function useImageConverter() {
   const debouncedQuality = useDebounce(quality, 300);
 
   useEffect(() => {
+    console.log('🔄 useEffect triggered with:', { 
+        filesLength: files.length,
+        debouncedQuality,
+        debouncedPreset,
+        debouncedWidth,
+        debouncedHeight
+    });
+
     if (files.length === 0) return;
+    
     const generatePreviews = async () => {
         let resizeOptions: { width?: number | ''; height?: number | ''; maxWidth?: number } = {};
+        
         if (debouncedPreset === 'custom') {
             resizeOptions = { width: debouncedWidth, height: debouncedHeight };
+            console.log('📐 Using custom dimensions:', resizeOptions);
         } else {
-
             resizeOptions = { maxWidth: presets[debouncedPreset].maxWidth ?? undefined };
+            console.log('📏 Using preset maxWidth:', resizeOptions);
         }
-        const previewPromises = files.map(file => convertFileToWebP(file, debouncedQuality / 100, resizeOptions, true));
+        
+        console.log('🎨 Starting preview generation with quality:', debouncedQuality / 100);
+        
+        const previewPromises = files.map(file => {
+            console.log(`🖼️ Converting ${file.name} with options:`, { 
+                quality: debouncedQuality / 100, 
+                ...resizeOptions 
+            });
+            return convertFileToWebP(file, debouncedQuality / 100, resizeOptions, true);
+        });
+        
         const results = await Promise.allSettled(previewPromises);
         const newPreviewResults: ConversionResults = {};
-        results.forEach(result => {
+        
+        results.forEach((result, index) => {
             if (result.status === 'fulfilled' && result.value) {
+                console.log(`✅ Preview generated for ${files[index].name}:`, result.value.webpSize, 'bytes');
                 newPreviewResults[result.value.originalName] = result.value;
+            } else {
+                console.error(`❌ Preview failed for ${files[index].name}:`, result.status === 'rejected' ? result.reason : 'No result');
             }
         });
+        
+        console.log('📊 Setting new preview results:', Object.keys(newPreviewResults));
         setPreviewResults(newPreviewResults);
     };
+    
     generatePreviews();
-  }, [files, debouncedQuality, debouncedPreset, debouncedWidth, debouncedHeight]);
+}, [files, debouncedQuality, debouncedPreset, debouncedWidth, debouncedHeight]);
 
   const handlePresetChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const presetKey = e.target.value;
@@ -78,10 +108,51 @@ export function useImageConverter() {
   };
   
   const handleQualitySliderChange = (values: number[]) => {
-    setQuality(values[0]);
-    setSelectedPreset('custom');
+
+if (selectedPreset !== 'custom') {
+    return; // Do nothing if not in custom mode
+  }
+
+    // Update quality and switch to custom preset to allow manual quality control
+    // setQuality(values[0]);
+    // setSelectedPreset('custom');
+    // setConversionResults({});
+    // setDownloadReady(false);
+    
+ setQuality(values[0]);
     setConversionResults({});
     setDownloadReady(false);
+
+
+    // Force preview regeneration for immediate feedback
+    // This ensures users see file size changes immediately when moving the quality slider
+    if (files.length > 0) {
+      const forcePreviewUpdate = async () => {
+        let resizeOptions: { width?: number | ''; height?: number | ''; maxWidth?: number } = {};
+        resizeOptions = { width: customWidth, height: customHeight };
+        
+        console.log('🎨 Force preview update with quality:', values[0] / 100, 'and options:', resizeOptions);
+        
+        const previewPromises = files.map(file => convertFileToWebP(file, values[0] / 100, resizeOptions, true));
+        const results = await Promise.allSettled(previewPromises);
+        const newPreviewResults: ConversionResults = {};
+        
+        results.forEach((result, index) => {
+          if (result.status === 'fulfilled' && result.value) {
+            console.log(`✅ Force preview generated for ${files[index].name}:`, result.value.webpSize, 'bytes');
+            newPreviewResults[result.value.originalName] = result.value;
+          } else {
+            console.error(`❌ Force preview failed for ${files[index].name}:`, result.status === 'rejected' ? result.reason : 'No result');
+          }
+        });
+        
+        console.log('📊 Setting forced preview results:', Object.keys(newPreviewResults));
+        setPreviewResults(newPreviewResults);
+      };
+      
+      // Small delay to avoid overwhelming the system during rapid slider movement
+      setTimeout(forcePreviewUpdate, 50);
+    }
   }
 
   const addFiles = (newFiles: FileList | null) => {
