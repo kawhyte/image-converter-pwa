@@ -56,7 +56,7 @@ export function useImageConverter() {
 
             resizeOptions = { maxWidth: presets[debouncedPreset].maxWidth ?? undefined };
         }
-        const previewPromises = files.map(file => convertFileToWebP(file, debouncedQuality, resizeOptions, true));
+        const previewPromises = files.map(file => convertFileToWebP(file, debouncedQuality / 100, resizeOptions, true));
         const results = await Promise.allSettled(previewPromises);
         const newPreviewResults: ConversionResults = {};
         results.forEach(result => {
@@ -175,7 +175,7 @@ export function useImageConverter() {
         const currentFile = files[i];
         setConvertingFile(currentFile.name);
         try {
-            const result = await convertFileToWebP(currentFile, quality, resizeOptions);
+            const result = await convertFileToWebP(currentFile, quality / 100, resizeOptions);
             newResults[result.originalName] = result;
             setConversionResults(prev => ({...prev, ...newResults}));
         } catch (e: any) {
