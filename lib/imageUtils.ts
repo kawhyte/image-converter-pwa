@@ -48,8 +48,8 @@ export function convertFileToWebP(
 
       ctx.drawImage(img, 0, 0, width, height);
 
-      const webpQuality = isPreview ? 0.5 : quality / 100;
-      const webpDataUrl = canvas.toDataURL('image/webp', webpQuality);
+      // Use the actual quality value for both preview and final conversion
+      const webpDataUrl = canvas.toDataURL('image/webp', quality);
       
       const originalName = file.name;
       const originalSize = file.size;
