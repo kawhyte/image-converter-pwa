@@ -1,10 +1,13 @@
-export async function renameWithAi(file) {
+export async function renameWithAi(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
-    reader.onload = async (event) => {
+    reader.onload = async (event: ProgressEvent<FileReader>) => {
         try {
-          const base64Data = event.target.result.split(',')[1];
+          if (!event.target?.result) {
+            return reject(new Error("File reading failed."));
+          }
+          const base64Data = (event.target.result as string).split(',')[1];
           const payload = {
               contents: [{
                   parts: [

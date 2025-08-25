@@ -1,11 +1,18 @@
-import { clsx } from "clsx";
+import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
-export function cn(...inputs) {
+export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export const presets = {
+interface Preset {
+  name: string;
+  description: string;
+  quality: number;
+  maxWidth: number | null;
+}
+
+export const presets: { [key: string]: Preset } = {
   whytes_hero: {
     name: 'Website Hero',
     description: 'High-quality preset for hero images.',
@@ -18,12 +25,6 @@ export const presets = {
     quality: 0.8,
     maxWidth: 1200,
   },
-  // default: {
-  //   name: 'Default',
-  //   description: 'A balanced preset for general use.',
-  //   quality: 0.7,
-  //   maxWidth: 1000,
-  // },
   custom: {
     name: 'Custom',
     description: 'Custom settings.',
@@ -32,16 +33,21 @@ export const presets = {
   }
 };
 
-export const aspectRatios = {
+interface AspectRatio {
+  ratio: number;
+  tip: string;
+}
+
+export const aspectRatios: { [key: string]: AspectRatio } = {
   '16:9': { ratio: 16 / 9, tip: 'Widescreen' },
   '4:3': { ratio: 4 / 3, tip: 'Standard' },
   '1:1': { ratio: 1, tip: 'Square' },
   '3:2': { ratio: 3 / 2, tip: 'Photography' },
 };
 
-export const themes = ['light', 'dark', 'playful'];
+export const themes: string[] = ['light', 'dark', 'playful'];
 
-export function formatBytes(bytes, decimals = 2) {
+export function formatBytes(bytes: number, decimals: number = 2): string {
   if (bytes === 0) return '0 Bytes';
   const k = 1024;
   const dm = decimals < 0 ? 0 : decimals;

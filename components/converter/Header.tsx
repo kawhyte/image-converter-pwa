@@ -5,12 +5,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-export const Header = () => {
+const Header: React.FC = () => {
     return (
-        <CardHeader>
+        <CardHeader className="">
             <CardTitle className="text-2xl text-white">Bulk JPEG to WebP Converter</CardTitle>
-
-            <CardDescription>Drag and drop images to convert them using powerful, one-click presets.</CardDescription>
+            <CardDescription className="">Drag and drop images to convert them using powerful, one-click presets.</CardDescription>
         </CardHeader>
     );
 };
+
+export default Header;
