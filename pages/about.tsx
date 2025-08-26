@@ -1,8 +1,11 @@
 import React from 'react';
 
+
    import Navbar from '../components/layout/Navbar';
 
    import {Zap, Sparkles, Gem, Snail, Rocket} from 'lucide-react';
+import ImageCompareSlider from '@/components/ImageCompareSlider';
+import ConversionAnimation from '@/components/ConversionAnimation';
 
 
 const AboutPage: React.FC = () => {
@@ -21,11 +24,9 @@ const AboutPage: React.FC = () => {
         </p>
         {/* INTERACTIVE ELEMENT: A before/after image slider would be perfect here */}
         <div className="max-w-2xl mx-auto mt-12 p-4 border-2 border-dashed border-zinc-700 rounded-xl">
-             <p className="text-zinc-500">
-                [Interactive "Before & After" Image Slider Placeholder]
-                <br />
-                Show a JPEG (580KB) vs a WebP (93KB) side-by-side.
-             </p>
+          
+
+             <ImageCompareSlider beforeImage={'/sample/before.jpeg'} afterImage={'/sample/after.webp'}/>
         </div>
       </div>
 
@@ -59,8 +60,17 @@ const AboutPage: React.FC = () => {
             </p>
              {/* ANIMATION: A stylized animation of the UI would be great here */}
             <div className="max-w-3xl mx-auto mt-10 p-8 bg-zinc-900 rounded-xl">
-                <p className="text-zinc-500">[Animation Placeholder: Show JPEGs flying in and smaller WebPs flying out]</p>
+                
+            
+            <ConversionAnimation/>
+            
+            
+            
             </div>
+
+
+
+
         </section>
         
         {/* Our Philosophy Section */}
