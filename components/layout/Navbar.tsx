@@ -12,8 +12,8 @@ const Navbar: React.FC = () => {
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
             <Link href="/" className="flex items-center gap-2">
-              <Image src="/icons/icon-72x72.png" alt="Logo" width={40} height={40} />
-              <span className="font-semibold text-lg text-foreground">Image Converter</span>
+              <Image src="/icons/logo.png" alt="Logo" width={40} height={40} />
+              <span className="font-semibold text-lg text-foreground">ImageRocket</span>
             </Link>
           </div>
           <div className="hidden md:block">
