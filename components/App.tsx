@@ -53,7 +53,7 @@ const App: React.FC = () => {
 	return (
 		<>
 			<TooltipProvider>
-				<div className='text-foreground min-h-screen w-full flex flex-col items-center justify-center p-4 transition-colors duration-300'>
+				<div className='text-foreground min-h-screen w-full flex flex-col items-center justify-center p-4 transition-colors duration-300 overflow-hidden'>
 					<div className='mb-4 flex flex-col items-center px-4 text-center md:mb-10'>
 						<div className='flex w-full flex-col items-center justify-center gap-2'></div>
 						<h1 className='mb-2 flex items-center gap-1 text-2xl font-medium leading-none text-foreground sm:text-3xl md:mb-2.5 md:gap-0 md:text-5xl'>
