@@ -22,7 +22,7 @@ export const presets: { [key: string]: Preset } = {
   thumbnail: {
     name: 'Blog Thumbnails',
     description: 'High-quality preset for hero images.',
-    quality: 80, // Quality as percentage (0-100)
+    quality: 50, // Quality as percentage (0-100)
     maxWidth: 1200,
   },
   custom: {
