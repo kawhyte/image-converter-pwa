@@ -41,42 +41,17 @@
 }
 
 /*
- * Specific styles for each of the four colored blobs.
- * Each has a unique background created with a radial-gradient,
- * a specific size (width/height), and is positioned differently.
- * The colors and positions are sampled from the original website.
+ * A single, large ellipse positioned at the bottom center of the page.
 */
 .ellipse-1 {
-    background: radial-gradient(circle at 50% 50%, rgba(204, 153, 255, 0.4) 0%, rgba(255, 255, 255, 0) 70%);
-    width: 600px;
-    height: 600px;
-    top: -100px;
-    left: -200px;
+    background: radial-gradient(circle at 50% 50%, rgba(247, 145, 1, 0.6) 0%, rgba(153, 204, 255, 0.4) 40%, rgba(255, 255, 255, 0) 70%);
+    width: 1000px;
+    height: 1000px;
+    bottom: -600px; /* Positions the ellipse at the bottom */
+    left: 50%; /* Centers the ellipse horizontally */
+    transform: translateX(-50%); /* Ensures perfect horizontal centering */
 }
 
-.ellipse-2 {
-    background: radial-gradient(circle at 50% 50%, rgba(255, 153, 204, 0.4) 0%, rgba(255, 255, 255, 0) 70%);
-    width: 550px;
-    height: 550px;
-    top: -150px;
-    right: -150px;
-}
-
-.ellipse-3 {
-    background: radial-gradient(circle at 50% 50%, rgba(153, 204, 255, 0.4) 0%, rgba(255, 255, 255, 0) 70%);
-    width: 500px;
-    height: 500px;
-    bottom: -200px;
-    left: 5%;
-}
-
-.ellipse-4 {
-    background: radial-gradient(circle at 50% 50%, rgba(255, 255, 153, 0.35) 0%, rgba(255, 255, 255, 0) 70%);
-    width: 450px;
-    height: 450px;
-    bottom: -150px;
-    right: 0;
-}
 
 /*
  * Keyframe Animations
@@ -92,12 +67,12 @@
     }
 }
 
-/* Scales the element from 80% of its size to its full size */
+/* Scales the element from 80% of its size to its full size while maintaining horizontal centering */
 @keyframes scale {
     from {
-        transform: scale(0.8);
+        transform: translateX(-50%) scale(0.8);
     }
     to {
-        transform: scale(1);
+        transform: translateX(-50%) scale(1);
     }
 }
