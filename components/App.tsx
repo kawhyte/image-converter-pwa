@@ -1,5 +1,5 @@
 import React from "react";
-import Image from 'next/image';
+import Image from "next/image";
 import {
 	Card,
 	CardContent,
@@ -56,22 +56,27 @@ const App: React.FC = () => {
 					<div className='mb-4 flex flex-col items-center px-4 text-center md:mb-10'>
 						<div className='flex w-full flex-col items-center justify-center gap-2'></div>
 						<h1 className='font-grotesk mb-2 flex items-center gap-1 text-2xl font-medium leading-none text-foreground sm:text-3xl md:mb-2.5 md:gap-0 md:text-5xl'>
-							<span className='pt-0.5 tracking-tight md:pt-0'>
-								ImageRocket
-							</span>
+							<span className='pt-0.5 tracking-tight md:pt-0'>ImageRocket</span>
 							<div className=' flex-col gap-1.5  hidden sm:ml-1 md:ml-1 md:flex'>
 								{/* <Images className='flex h-[22px] sm:h-[28px] md:h-[36px]' /> */}
-                <Image src="/icons/Rocket.gif" unoptimized alt="Logo" width={100} height={60} />
+								<Image
+									src='/icons/Rocket.gif'
+									unoptimized
+									alt='Logo'
+									width={100}
+									height={60}
+								/>
 							</div>
 						</h1>
 						<p className='mb-6 max-w-[25ch] text-center text-lg leading-tight text-foreground/65 md:max-w-full md:text-xl'>
-						Shrink your images. Speed up your site.
+							Shrink your images. Speed up your site.
 						</p>
 					</div>
 
 					<div className='background-gradient-container'>
 						<div className='blur-filter'>
 							<div className='ellipse ellipse-1'></div>
+
 							<div className='ellipse ellipse-2'></div>
 							<div className='ellipse ellipse-3'></div>
 							<div className='ellipse ellipse-4'></div>
@@ -79,16 +84,20 @@ const App: React.FC = () => {
 					</div>
 					<div className='w-full max-w-4xl mx-auto relative'>
 						<Card className='w-full transition-all duration-150 ease-in-out rounded-3xl border border-muted-foreground text-base shadow-xl focus-within:border-foreground/20 hover:border-foreground/10 focus-within:hover:border-foreground/20 bg-slate-900'>
-							
-              
-              <CardHeader className='text-center'>
+							<CardHeader className='text-center'>
 								<CardTitle className=''>Bulk Image to WebP Converter</CardTitle>
 								<CardDescription className=''>
-								Drag and drop images to convert them using powerful, one-click presets.
+									<p>
+										Drag and drop images to convert them to webp format using
+										powerful, one-click presets.
+									</p>
+
+									<p className='text-xs italic mt-2'>
+										Supported Input Formats: JPEG, PNG, GIF, BMP
+									</p>
 								</CardDescription>
 							</CardHeader>
 
-              
 							<CardContent className=''>
 								<FileUpload fileInputRef={fileInputRef} addFiles={addFiles} />
 

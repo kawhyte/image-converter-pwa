@@ -8,8 +8,9 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
+        sans: ['Space Grotesk', 'sans-serif'],
         grotesk: ['Space Grotesk', 'sans-serif'],
+        inter: ['Inter', 'sans-serif'],
       },
       colors: {
         background: 'hsl(0 0% 3.9%)',

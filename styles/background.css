@@ -50,6 +50,7 @@
     bottom: -600px; /* Positions the ellipse at the bottom */
     left: 50%; /* Centers the ellipse horizontally */
     transform: translateX(-50%); /* Ensures perfect horizontal centering */
+    animation: appear 1.5s ease forwards, scale 5s ease forwards, gentle-pulse 8s ease-in-out infinite 5s;
 }
 
 
@@ -74,5 +75,30 @@
     }
     to {
         transform: translateX(-50%) scale(1);
+    }
+}
+
+/* Additional ellipse styles */
+.ellipse-2 {
+    animation: appear 1.5s ease forwards, scale 5s ease forwards, gentle-pulse 8s ease-in-out infinite 6s;
+}
+
+.ellipse-3 {
+    animation: appear 1.5s ease forwards, scale 5s ease forwards, gentle-pulse 8s ease-in-out infinite 7s;
+}
+
+.ellipse-4 {
+    animation: appear 1.5s ease forwards, scale 5s ease forwards, gentle-pulse 8s ease-in-out infinite 8s;
+}
+
+/* Subtle pulsing animation for the ellipses */
+@keyframes gentle-pulse {
+    0%, 100% {
+        transform: translateX(-50%) scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: translateX(-50%) scale(1.02);
+        opacity: 0.95;
     }
 }
