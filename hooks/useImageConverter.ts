@@ -101,7 +101,7 @@ export function useImageConverter() {
     }
 
     generatePreviews();
-  }, [generatePreviews]);
+  }, [files.length, generatePreviews]);
 
   // Cleanup on unmount
   useEffect(() => {
