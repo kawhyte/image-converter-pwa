@@ -1,9 +1,7 @@
 import React from 'react';
-
-
-   import Navbar from '../components/layout/Navbar';
-
-   import {Zap, Sparkles, Gem, Snail, Rocket} from 'lucide-react';
+import Link from 'next/link';
+import Navbar from '../components/layout/Navbar';
+import {Zap, Sparkles, Gem, Snail, Rocket} from 'lucide-react';
 import ImageCompareSlider from '@/components/ImageCompareSlider';
 import ConversionAnimation from '@/components/ConversionAnimation';
 
@@ -20,7 +18,7 @@ const AboutPage: React.FC = () => {
           From Bloated to Blazing Fast.
         </h1>
         <p className="max-w-3xl mx-auto text-lg sm:text-xl text-zinc-400">
-          We're obsessed with milliseconds, so you don't have to be. Our mission is to make the web faster for everyone, and it all starts with your images.
+          We&apos;re obsessed with milliseconds, so you don&apos;t have to be. Our mission is to make the web faster for everyone, and it all starts with your images.
         </p>
         {/* INTERACTIVE ELEMENT: A before/after image slider would be perfect here */}
         <div className="max-w-2xl mx-auto mt-12 p-4 border-2 border-dashed border-zinc-700 rounded-xl">
@@ -56,7 +54,7 @@ const AboutPage: React.FC = () => {
         <section className="text-center">
             <h2 className="font-grotesk text-3xl font-bold text-gray-50 mb-4">Making Modern Image Formats Effortless.</h2>
             <p className="max-w-3xl mx-auto text-zinc-400 leading-relaxed">
-             WebP is an incredible format that offers tiny file sizes with amazing quality. The problem? Converting images is a chore. That's why we built this tool—the powerful, one-click converter we always wished we had. No complicated software, no command lines—just drag, drop, and download.
+             WebP is an incredible format that offers tiny file sizes with amazing quality. The problem? Converting images is a chore. That&apos;s why we built this tool—the powerful, one-click converter we always wished we had. No complicated software, no command lines—just drag, drop, and download.
             </p>
              {/* ANIMATION: A stylized animation of the UI would be great here */}
             <div className="max-w-3xl mx-auto mt-10 p-8 bg-zinc-900 rounded-xl">
@@ -80,12 +78,12 @@ const AboutPage: React.FC = () => {
             <div className="p-6 bg-zinc-900 rounded-xl">
               <Zap className="w-10 h-10 mx-auto text-blue-500 mb-4" />
               <h3 className="font-grotesk text-xl font-semibold mb-2">Speed</h3>
-              <p className="text-zinc-400">Performance is a feature. We're committed to making your workflow and your website as fast as possible.</p>
+              <p className="text-zinc-400">Performance is a feature. We&apos;re committed to making your workflow and your website as fast as possible.</p>
             </div>
             <div className="p-6 bg-zinc-900 rounded-xl">
               <Sparkles className="w-10 h-10 mx-auto text-blue-500 mb-4" />
               <h3 className="font-grotesk text-xl font-semibold mb-2">Simplicity</h3>
-              <p className="text-zinc-400">Powerful tools don't need to be complicated. Our interface is designed to be intuitive from the first click.</p>
+              <p className="text-zinc-400">Powerful tools don&apos;t need to be complicated. Our interface is designed to be intuitive from the first click.</p>
             </div>
             <div className="p-6 bg-zinc-900 rounded-xl">
               <Gem className="w-10 h-10 mx-auto text-blue-500 mb-4" />
@@ -101,12 +99,12 @@ const AboutPage: React.FC = () => {
             <p className="text-blue-100 max-w-2xl mx-auto mb-8">
                 No sign-up required. Drag and drop your images to see the magic for yourself.
             </p>
-            <a 
-              href="/" 
+            <Link
+              href="/"
               className="inline-block bg-white text-blue-600 font-bold py-3 px-8 rounded-lg text-lg hover:bg-gray-200 transition-transform transform hover:scale-105"
             >
                 Convert Your Images for Free
-            </a>
+            </Link>
         </section>
 
       </div>
