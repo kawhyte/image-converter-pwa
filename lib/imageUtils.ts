@@ -59,6 +59,7 @@ export function convertFileToWebP(
         .then(blob => {
             const webpSize = blob.size;
             const reduction = originalSize > 0 ? ((originalSize - webpSize) / originalSize) * 100 : 0;
+            URL.revokeObjectURL(img.src);
             resolve({
                 originalName,
                 webpDataUrl,
@@ -69,6 +70,7 @@ export function convertFileToWebP(
         });
     };
     img.onerror = (err) => {
+      URL.revokeObjectURL(img.src);
       reject(err);
     };
   });

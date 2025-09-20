@@ -2,7 +2,6 @@ import React from "react";
 import Image from 'next/image';
 import {
 	Card,
-	CardAction,
 	CardContent,
 	CardDescription,
 	CardHeader,
@@ -10,8 +9,8 @@ import {
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Images, Rocket } from "lucide-react";
 import { useImageConverter } from "../hooks/useImageConverter";
+import { ErrorBoundary } from "./ErrorBoundary";
 
 import FileUpload from "./converter/FileUpload";
 import Settings from "./converter/Settings";
@@ -51,7 +50,7 @@ const App: React.FC = () => {
 	} = useImageConverter();
 
 	return (
-		<>
+		<ErrorBoundary>
 			<TooltipProvider>
 				<div className='text-foreground min-h-screen w-full flex flex-col items-center justify-center p-4 transition-colors duration-300 overflow-hidden'>
 					<div className='mb-4 flex flex-col items-center px-4 text-center md:mb-10'>
@@ -62,7 +61,7 @@ const App: React.FC = () => {
 							</span>
 							<div className=' flex-col gap-1.5  hidden sm:ml-1 md:ml-1 md:flex'>
 								{/* <Images className='flex h-[22px] sm:h-[28px] md:h-[36px]' /> */}
-                <Image src="/icons/Rocket.gif" alt="Logo" width={100} height={60} />
+                <Image src="/icons/Rocket.gif" unoptimized alt="Logo" width={100} height={60} />
 							</div>
 						</h1>
 						<p className='mb-6 max-w-[25ch] text-center text-lg leading-tight text-foreground/65 md:max-w-full md:text-xl'>
@@ -145,7 +144,7 @@ const App: React.FC = () => {
 					</div>
 				</div>
 			</TooltipProvider>
-		</>
+		</ErrorBoundary>
 	);
 };
 

@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { useDebounce } from './useDebounce';
-import { presets } from '../lib/utils';
+import { presets, getResizeOptions, calculateAspectRatioDimensions } from '../lib/utils';
 import { convertFileToWebP, WebPConversionResult } from '../lib/imageUtils';
 import { renameWithAi } from '../lib/aiUtils';
 
@@ -19,141 +19,147 @@ interface ConversionResults {
 }
 
 export function useImageConverter() {
+  // File management
   const [files, setFiles] = useState<File[]>([]);
+  const [originalDimensions, setOriginalDimensions] = useState<OriginalDimensions | null>(null);
+
+  // Conversion settings
+  const [selectedPreset, setSelectedPreset] = useState<string>('whytes_hero');
+  const [quality, setQuality] = useState<number>(presets.whytes_hero.quality);
+  const [customWidth, setCustomWidth] = useState<number | ''>('');
+  const [customHeight, setCustomHeight] = useState<number | ''>('');
+
+  // Conversion results
+  const [conversionResults, setConversionResults] = useState<ConversionResults>({});
+  const [previewResults, setPreviewResults] = useState<ConversionResults>({});
+
+  // AI naming
   const [aiFileNames, setAiFileNames] = useState<AiFileNames>({});
   const [isNaming, setIsNaming] = useState<string | null>(null);
   const [namingTimer, setNamingTimer] = useState<number>(0);
-  const [conversionResults, setConversionResults] = useState<ConversionResults>({});
-  const [previewResults, setPreviewResults] = useState<ConversionResults>({});
-  const [selectedPreset, setSelectedPreset] = useState<string>('whytes_hero');
-  const [quality, setQuality] = useState<number>(presets.whytes_hero.quality);
-  
 
-  const [customWidth, setCustomWidth] = useState<number | ''>('');
-  const [customHeight, setCustomHeight] = useState<number | ''>('');
-  const [originalDimensions, setOriginalDimensions] = useState<OriginalDimensions | null>(null);
+  // Processing states
   const [isConverting, setIsConverting] = useState<boolean>(false);
   const [conversionProgress, setConversionProgress] = useState<number>(0);
   const [convertingFile, setConvertingFile] = useState<string | null>(null);
   const [downloadReady, setDownloadReady] = useState<boolean>(false);
-  const [error, setError] = useState<string>('');
   const [isZipping, setIsZipping] = useState<boolean>(false);
+  const [error, setError] = useState<string>('');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const previewAbortController = useRef<AbortController | null>(null);
 
-  
   const debouncedPreset = useDebounce(selectedPreset, 300);
   const debouncedWidth = useDebounce(customWidth, 300);
   const debouncedHeight = useDebounce(customHeight, 300);
   const debouncedQuality = useDebounce(quality, 300);
 
-  useEffect(() => {
-    console.log('🔄 useEffect triggered with:', { 
-        filesLength: files.length,
-        debouncedQuality,
-        debouncedPreset,
-        debouncedWidth,
-        debouncedHeight
+  // Memoize resize options to prevent unnecessary recalculations
+  const resizeOptions = useMemo(() =>
+    getResizeOptions(debouncedPreset, debouncedWidth, debouncedHeight),
+    [debouncedPreset, debouncedWidth, debouncedHeight]
+  );
+
+  // Memoized preview generation function
+  const generatePreviews = useCallback(async () => {
+    // Cancel any existing preview generation
+    if (previewAbortController.current) {
+      previewAbortController.current.abort();
+    }
+    previewAbortController.current = new AbortController();
+
+    const previewPromises = files.map(file => {
+        return convertFileToWebP(file, debouncedQuality / 100, resizeOptions, true);
     });
 
-    if (files.length === 0) return;
-    
-    const generatePreviews = async () => {
-        let resizeOptions: { width?: number | ''; height?: number | ''; maxWidth?: number } = {};
-        
-        if (debouncedPreset === 'custom') {
-            resizeOptions = { width: debouncedWidth, height: debouncedHeight };
-            console.log('📐 Using custom dimensions:', resizeOptions);
-        } else {
-            resizeOptions = { maxWidth: presets[debouncedPreset].maxWidth ?? undefined };
-            console.log('📏 Using preset maxWidth:', resizeOptions);
-        }
-        
-        console.log('🎨 Starting preview generation with quality:', debouncedQuality / 100);
-        
-        const previewPromises = files.map(file => {
-            console.log(`🖼️ Converting ${file.name} with options:`, { 
-                quality: debouncedQuality / 100, 
-                ...resizeOptions 
-            });
-            return convertFileToWebP(file, debouncedQuality / 100, resizeOptions, true);
-        });
-        
+    try {
         const results = await Promise.allSettled(previewPromises);
         const newPreviewResults: ConversionResults = {};
-        
+
         results.forEach((result, index) => {
             if (result.status === 'fulfilled' && result.value) {
-                console.log(`✅ Preview generated for ${files[index].name}:`, result.value.webpSize, 'bytes');
                 newPreviewResults[result.value.originalName] = result.value;
-            } else {
-                console.error(`❌ Preview failed for ${files[index].name}:`, result.status === 'rejected' ? result.reason : 'No result');
+            } else if (result.status === 'rejected') {
+                console.error(`Preview failed for ${files[index].name}:`, result.reason);
             }
         });
-        
-        console.log('📊 Setting new preview results:', Object.keys(newPreviewResults));
-        setPreviewResults(newPreviewResults);
-    };
-    
-    generatePreviews();
-}, [files, debouncedQuality, debouncedPreset, debouncedWidth, debouncedHeight]);
 
-  const handlePresetChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setPreviewResults(newPreviewResults);
+    } catch (error) {
+        // Handle cancellation gracefully
+        if (error instanceof Error && error.name !== 'AbortError') {
+            console.error('Preview generation error:', error);
+        }
+    }
+  }, [files, debouncedQuality, resizeOptions]);
+
+  useEffect(() => {
+    if (files.length === 0) {
+        setPreviewResults({});
+        return;
+    }
+
+    generatePreviews();
+  }, [generatePreviews]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      // Cancel any pending preview generation
+      if (previewAbortController.current) {
+        previewAbortController.current.abort();
+      }
+      // Clear any pending timers
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+      }
+    };
+  }, []);
+
+  const handlePresetChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     const presetKey = e.target.value;
     setSelectedPreset(presetKey);
     setQuality(presets[presetKey].quality);
     setConversionResults({});
     setDownloadReady(false);
-  };
+  }, []);
   
   const handleQualitySliderChange = (values: number[]) => {
+    if (selectedPreset !== 'custom') {
+      return; // Do nothing if not in custom mode
+    }
 
-if (selectedPreset !== 'custom') {
-    return; // Do nothing if not in custom mode
-  }
-
-    // Update quality and switch to custom preset to allow manual quality control
-    // setQuality(values[0]);
-    // setSelectedPreset('custom');
-    // setConversionResults({});
-    // setDownloadReady(false);
-    
- setQuality(values[0]);
+    setQuality(values[0]);
     setConversionResults({});
     setDownloadReady(false);
 
-
     // Force preview regeneration for immediate feedback
-    // This ensures users see file size changes immediately when moving the quality slider
     if (files.length > 0) {
       const forcePreviewUpdate = async () => {
-        let resizeOptions: { width?: number | ''; height?: number | ''; maxWidth?: number } = {};
-        resizeOptions = { width: customWidth, height: customHeight };
-        
-        console.log('🎨 Force preview update with quality:', values[0] / 100, 'and options:', resizeOptions);
-        
-        const previewPromises = files.map(file => convertFileToWebP(file, values[0] / 100, resizeOptions, true));
+        const resizeOptions = getResizeOptions('custom', customWidth, customHeight);
+
+        const previewPromises = files.map(file =>
+          convertFileToWebP(file, values[0] / 100, resizeOptions, true)
+        );
         const results = await Promise.allSettled(previewPromises);
         const newPreviewResults: ConversionResults = {};
-        
+
         results.forEach((result, index) => {
           if (result.status === 'fulfilled' && result.value) {
-            console.log(`✅ Force preview generated for ${files[index].name}:`, result.value.webpSize, 'bytes');
             newPreviewResults[result.value.originalName] = result.value;
-          } else {
-            console.error(`❌ Force preview failed for ${files[index].name}:`, result.status === 'rejected' ? result.reason : 'No result');
+          } else if (result.status === 'rejected') {
+            console.error(`Force preview failed for ${files[index].name}:`, result.reason);
           }
         });
-        
-        console.log('📊 Setting forced preview results:', Object.keys(newPreviewResults));
+
         setPreviewResults(newPreviewResults);
       };
-      
+
       // Small delay to avoid overwhelming the system during rapid slider movement
       setTimeout(forcePreviewUpdate, 50);
     }
-  }
+  };
 
   const addFiles = (newFiles: FileList | null) => {
     if (!newFiles) return;
@@ -205,14 +211,9 @@ if (selectedPreset !== 'custom') {
   
   const handleAspectRatioChange = (ratio: number) => {
       if (originalDimensions) {
-          const { width, height } = originalDimensions;
-          if (width >= height) {
-              setCustomWidth(width);
-              setCustomHeight(Math.round(width / ratio));
-          } else {
-              setCustomHeight(height);
-              setCustomWidth(Math.round(height * ratio));
-          }
+          const newDimensions = calculateAspectRatioDimensions(originalDimensions, ratio);
+          setCustomWidth(newDimensions.width);
+          setCustomHeight(newDimensions.height);
       }
       setDownloadReady(false);
       setConversionResults({});
@@ -234,12 +235,7 @@ if (selectedPreset !== 'custom') {
     setError('');
     setConversionProgress(0);
 
-    let resizeOptions: { width?: number | ''; height?: number | ''; maxWidth?: number } = {};
-    if (selectedPreset === 'custom') {
-        resizeOptions = { width: customWidth, height: customHeight };
-    } else {
-        resizeOptions = { maxWidth: presets[selectedPreset].maxWidth ?? undefined };
-    }
+    const resizeOptions = getResizeOptions(selectedPreset, customWidth, customHeight);
 
     const newResults: ConversionResults = {};
     for (let i = 0; i < files.length; i++) {
@@ -263,7 +259,10 @@ if (selectedPreset !== 'custom') {
   
   const handleDownloadAll = async () => {
     const JSZip = (window as any).JSZip;
-    if (!JSZip) { setError("JSZip library not loaded."); return; }
+    if (!JSZip) {
+      setError("JSZip library not loaded.");
+      return;
+    }
     setIsZipping(true);
     const zip = new JSZip();
     Object.values(conversionResults).filter(r => r && r.webpDataUrl).forEach(result => {
@@ -311,7 +310,10 @@ if (selectedPreset !== 'custom') {
       }
   };
 
-  const allFilesConverted = files.length > 0 && files.every(f => conversionResults[f.name]);
+  const allFilesConverted = useMemo(() =>
+    files.length > 0 && files.every(f => conversionResults[f.name]),
+    [files, conversionResults]
+  );
 
   return {
     files,

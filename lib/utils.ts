@@ -56,3 +56,35 @@ export function formatBytes(bytes: number, decimals: number = 2): string {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 }
 
+// Utility function to get resize options based on preset and custom dimensions
+export function getResizeOptions(
+  selectedPreset: string,
+  customWidth: number | '',
+  customHeight: number | ''
+): { width?: number | ''; height?: number | ''; maxWidth?: number } {
+  if (selectedPreset === 'custom') {
+    return { width: customWidth, height: customHeight };
+  } else {
+    return { maxWidth: presets[selectedPreset]?.maxWidth ?? undefined };
+  }
+}
+
+// Utility function to calculate aspect ratio dimensions
+export function calculateAspectRatioDimensions(
+  originalDimensions: { width: number; height: number },
+  targetRatio: number
+): { width: number; height: number } {
+  const { width, height } = originalDimensions;
+  if (width >= height) {
+    return {
+      width: width,
+      height: Math.round(width / targetRatio)
+    };
+  } else {
+    return {
+      width: Math.round(height * targetRatio),
+      height: height
+    };
+  }
+}
+
