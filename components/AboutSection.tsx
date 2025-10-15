@@ -242,7 +242,7 @@ const AboutSection: React.FC = React.memo(() => {
 									<span className='text-green-400 flex-shrink-0'>•</span>
 									<div>
 										<strong className='text-foreground'>No tracking</strong> - We
-										don't collect or store your data
+										don&apos;t collect or store your data
 									</div>
 								</li>
 								<li className='flex gap-3'>
