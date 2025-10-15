@@ -16,6 +16,7 @@ import FileUpload from "./converter/FileUpload";
 import Settings from "./converter/Settings";
 import FileList from "./converter/FileList";
 import Actions from "./converter/Actions";
+import AboutSection from "./AboutSection";
 
 const App: React.FC = () => {
 	const {
@@ -50,9 +51,10 @@ const App: React.FC = () => {
 	} = useImageConverter();
 
 	return (
+		<>
 		<ErrorBoundary>
 			<TooltipProvider>
-				<div className='text-foreground min-h-screen w-full flex flex-col items-center justify-center p-4 transition-colors duration-300 overflow-hidden'>
+				<div className='text-foreground min-h-screen w-full flex flex-col items-center justify-start px-4 py-4 sm:py-6 md:py-8 pb-8 md:pb-12 transition-colors duration-300 overflow-y-auto scroll-smooth'>
 					<div className='mb-4 flex flex-col items-center px-4 text-center md:mb-10'>
 						<div className='flex w-full flex-col items-center justify-center gap-2'></div>
 						<h1 className='font-grotesk mb-2 flex items-center gap-1 text-2xl font-medium leading-none text-foreground sm:text-3xl md:mb-2.5 md:gap-0 md:text-5xl'>
@@ -151,9 +153,20 @@ const App: React.FC = () => {
 							</CardContent>
 						</Card>
 					</div>
+
+					{/* About Section */}
+					{/* <div className='w-full max-w-4xl mx-auto relative mt-8 md:mt-12 lg:mt-16'>
+						<AboutSection />
+					</div> */}
 				</div>
 			</TooltipProvider>
+
+		
 		</ErrorBoundary>
+
+
+
+	</>
 	);
 };
 
