@@ -52,6 +52,16 @@ export const presets: { [key: string]: Preset } = {
     height: 1067,
     group: 'cover',
   },
+  seat_view: {
+    name: 'View From My Seat',
+    description: 'Seat view photos — 4:3 landscape. Page crops every photo to 4:3; landscape shots fill the frame. Portrait shots (phone vertical) lose top/bottom — shoot landscape for best results.',
+    quality: 80,
+    outputFormat: 'webp',
+    cropMode: 'exact',
+    width: 1600,
+    height: 1200,
+    group: 'cover',
+  },
   gallery: {
     name: 'Gallery & Body Images',
     description: 'Photo grids and inline article photos — longest edge resized, aspect ratio preserved.',
@@ -62,8 +72,8 @@ export const presets: { [key: string]: Preset } = {
     group: 'gallery',
   },
   card_items: {
-    name: 'Food & Arena Items',
-    description: 'Arena food/drink items and food dish card grids.',
+    name: 'Arena Food & Drinks',
+    description: 'Rate individual food/drink items tried at this arena. 3:2 landscape — center-cropped to 900×600.',
     quality: 75,
     outputFormat: 'webp',
     cropMode: 'exact',
