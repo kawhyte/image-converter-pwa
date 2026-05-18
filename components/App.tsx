@@ -38,6 +38,7 @@ const App: React.FC = () => {
 		isZipping,
 		fileInputRef,
 		addFiles,
+		handlePresetSelect,
 		handlePresetChange,
 		handleQualitySliderChange,
 		handleWidthChange,
@@ -113,7 +114,7 @@ const App: React.FC = () => {
 									<div className='mt-6'>
 										<Settings
 											selectedPreset={selectedPreset}
-											handlePresetChange={handlePresetChange}
+											handlePresetSelect={handlePresetSelect}
 											quality={quality}
 											handleQualitySliderChange={handleQualitySliderChange}
 											customWidth={customWidth}

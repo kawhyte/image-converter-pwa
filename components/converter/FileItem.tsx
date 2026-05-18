@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { formatBytes } from '../../lib/utils';
 import type { WebPConversionResult } from '../../lib/imageUtils';
 import { Button } from "@/components/ui/button";
@@ -18,14 +17,35 @@ interface Props {
 
 const FileItem: React.FC<Props> = ({ file, result, preview, aiFileName, isNaming, namingTimer, convertingFile, handleAiRename }) => {
     const displaySize = result ? result.webpSize : (preview ? preview.webpSize : null);
-    const displayName = aiFileName ? `${aiFileName}.webp` : file.name;
-    const objectUrl = URL.createObjectURL(file);
+
+    // Create objectUrl once per file, revoke on unmount
+    const objectUrl = useMemo(() => URL.createObjectURL(file), [file]);
+    useEffect(() => () => URL.revokeObjectURL(objectUrl), [objectUrl]);
+
+    const outputFormat = result?.outputFormat ?? 'webp';
+    const ext = outputFormat === 'png' ? 'png' : 'webp';
+
+    const baseName = aiFileName
+        ? aiFileName
+        : file.name.split('.').slice(0, -1).join('.');
+    const displayName = aiFileName ? `${aiFileName}.${ext}` : file.name;
+    const downloadName = `${baseName}.${ext}`;
+
+    const outputDims = result
+        ? `${result.outputWidth} × ${result.outputHeight}`
+        : preview
+            ? `Est. ${preview.outputWidth} × ${preview.outputHeight}`
+            : null;
 
     return (
         <div className="flex items-center justify-between p-3 bg-card border rounded-lg">
             <TooltipProvider>
                 <div className="flex items-center gap-3 overflow-hidden">
-                    <img src={objectUrl} alt={file.name} className="w-12 h-12 object-cover rounded-md shrink-0" onLoad={() => URL.revokeObjectURL(objectUrl)} />
+                    <img
+                        src={objectUrl}
+                        alt={file.name}
+                        className="w-12 h-12 object-cover rounded-md shrink-0"
+                    />
                     <div className="overflow-hidden">
                         <p className="text-sm font-medium text-foreground truncate">{displayName}</p>
                         <p className="text-xs text-muted-foreground">
@@ -39,12 +59,15 @@ const FileItem: React.FC<Props> = ({ file, result, preview, aiFileName, isNaming
                                 </>
                             )}
                         </p>
+                        {outputDims && (
+                            <p className="text-xs text-muted-foreground/70">{outputDims} px</p>
+                        )}
                     </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                     {isNaming === file.name && (
                         <div className="flex items-center justify-center h-8 w-24 text-sm text-green-500 font-semibold tabular-nums">
-                            ✨ {namingTimer}s
+                            AI {namingTimer}s
                         </div>
                     )}
                     {convertingFile === file.name && !result && (
@@ -65,7 +88,7 @@ const FileItem: React.FC<Props> = ({ file, result, preview, aiFileName, isNaming
                                 </TooltipContent>
                             </Tooltip>
                             {result && (
-                                <a href={result.webpDataUrl} download={`${displayName.split('.').slice(0, -1).join('.')}.webp`}>
+                                <a href={result.webpDataUrl} download={downloadName}>
                                     <Button size="sm" variant="outline-primary" className="text-foreground" {...({} as any)}>Save</Button>
                                 </a>
                             )}

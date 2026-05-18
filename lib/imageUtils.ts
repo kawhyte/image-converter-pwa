@@ -1,77 +1,129 @@
+import type { ResizeOptions, OutputFormat } from './utils';
+
 export interface WebPConversionResult {
   originalName: string;
   webpDataUrl: string;
+  outputFormat: OutputFormat;
   originalSize: number;
   webpSize: number;
   reduction: number;
-}
-
-interface ResizeOptions {
-  maxWidth?: number;
-  width?: number | '';
-  height?: number | '';
+  outputWidth: number;
+  outputHeight: number;
 }
 
 export function convertFileToWebP(
   file: File,
   quality: number,
-  resizeOptions: ResizeOptions = {},
-  isPreview: boolean = false
+  resizeOptions: ResizeOptions,
+  _isPreview: boolean = false
 ): Promise<WebPConversionResult> {
   return new Promise((resolve, reject) => {
     const img = new Image();
-    img.src = URL.createObjectURL(file);
+    const objectUrl = URL.createObjectURL(file);
+    img.src = objectUrl;
+
     img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
-
       if (!ctx) {
         return reject(new Error('Failed to get canvas context'));
       }
 
-      let { width, height } = img;
+      let canvasW: number;
+      let canvasH: number;
+      let srcX = 0;
+      let srcY = 0;
+      let srcW = img.width;
+      let srcH = img.height;
 
-      if (resizeOptions.maxWidth && width > resizeOptions.maxWidth) {
-        height = (resizeOptions.maxWidth / width) * height;
-        width = resizeOptions.maxWidth;
-      }
-      
-      if (typeof resizeOptions.width === 'number' && resizeOptions.width > 0) {
-        width = resizeOptions.width;
-      }
-      if (typeof resizeOptions.height === 'number' && resizeOptions.height > 0) {
-        height = resizeOptions.height;
-      }
-      
-      canvas.width = width;
-      canvas.height = height;
+      if (
+        resizeOptions.cropMode === 'exact' &&
+        resizeOptions.targetWidth &&
+        resizeOptions.targetHeight
+      ) {
+        canvasW = resizeOptions.targetWidth;
+        canvasH = resizeOptions.targetHeight;
+        const targetRatio = canvasW / canvasH;
+        const srcRatio = img.width / img.height;
 
-      ctx.drawImage(img, 0, 0, width, height);
+        if (srcRatio > targetRatio) {
+          // Source is wider than target — crop the width, use full height
+          srcH = img.height;
+          srcW = Math.round(img.height * targetRatio);
+          srcX = Math.round((img.width - srcW) / 2);
+          srcY = 0;
+        } else if (srcRatio < targetRatio) {
+          // Source is taller than target — crop the height, use full width
+          srcW = img.width;
+          srcH = Math.round(img.width / targetRatio);
+          srcX = 0;
+          srcY = Math.round((img.height - srcH) / 2);
+        }
+      } else if (resizeOptions.cropMode === 'resize' && resizeOptions.maxEdge) {
+        const maxEdge = resizeOptions.maxEdge;
+        if (img.width >= img.height) {
+          canvasW = Math.min(img.width, maxEdge);
+          canvasH = Math.round(img.height * (canvasW / img.width));
+        } else {
+          canvasH = Math.min(img.height, maxEdge);
+          canvasW = Math.round(img.width * (canvasH / img.height));
+        }
+      } else {
+        // custom mode — use provided dimensions or fall back to original
+        canvasW =
+          resizeOptions.customWidth && resizeOptions.customWidth > 0
+            ? resizeOptions.customWidth
+            : img.width;
+        canvasH =
+          resizeOptions.customHeight && resizeOptions.customHeight > 0
+            ? resizeOptions.customHeight
+            : img.height;
+      }
 
-      // Use the actual quality value for both preview and final conversion
-      const webpDataUrl = canvas.toDataURL('image/webp', quality);
-      
+      canvas.width = canvasW;
+      canvas.height = canvasH;
+      ctx.drawImage(img, srcX, srcY, srcW, srcH, 0, 0, canvasW, canvasH);
+
+      const outputFormat = resizeOptions.outputFormat ?? 'webp';
+      const dataUrl =
+        outputFormat === 'png'
+          ? canvas.toDataURL('image/png')
+          : canvas.toDataURL('image/webp', quality);
+
+      // Release canvas GPU memory immediately after extraction
+      canvas.width = 0;
+      canvas.height = 0;
+
       const originalName = file.name;
       const originalSize = file.size;
-      
-      fetch(webpDataUrl)
+      const finalW = canvasW;
+      const finalH = canvasH;
+
+      fetch(dataUrl)
         .then(res => res.blob())
         .then(blob => {
-            const webpSize = blob.size;
-            const reduction = originalSize > 0 ? ((originalSize - webpSize) / originalSize) * 100 : 0;
-            URL.revokeObjectURL(img.src);
-            resolve({
-                originalName,
-                webpDataUrl,
-                originalSize,
-                webpSize,
-                reduction,
-            });
-        });
+          const webpSize = blob.size;
+          const reduction =
+            originalSize > 0 ? ((originalSize - webpSize) / originalSize) * 100 : 0;
+          resolve({
+            originalName,
+            webpDataUrl: dataUrl,
+            outputFormat,
+            originalSize,
+            webpSize,
+            reduction,
+            outputWidth: finalW,
+            outputHeight: finalH,
+          });
+        })
+        .catch(reject);
     };
-    img.onerror = (err) => {
-      URL.revokeObjectURL(img.src);
-      reject(err);
+
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error(`Failed to load image: ${file.name}`));
     };
   });
 }

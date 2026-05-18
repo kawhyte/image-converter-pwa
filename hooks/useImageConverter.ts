@@ -4,7 +4,10 @@ import { presets, getResizeOptions, calculateAspectRatioDimensions } from '../li
 import { convertFileToWebP, WebPConversionResult } from '../lib/imageUtils';
 import { renameWithAi } from '../lib/aiUtils';
 
-// Type Definitions
+const MAX_FILE_SIZE_MB = 30;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+const DEFAULT_PRESET = 'hotel_food_cover';
+
 interface OriginalDimensions {
   width: number;
   height: number;
@@ -15,30 +18,25 @@ interface AiFileNames {
 }
 
 interface ConversionResults {
-    [key: string]: WebPConversionResult;
+  [key: string]: WebPConversionResult;
 }
 
 export function useImageConverter() {
-  // File management
   const [files, setFiles] = useState<File[]>([]);
   const [originalDimensions, setOriginalDimensions] = useState<OriginalDimensions | null>(null);
 
-  // Conversion settings
-  const [selectedPreset, setSelectedPreset] = useState<string>('whytes_hero');
-  const [quality, setQuality] = useState<number>(presets.whytes_hero.quality);
+  const [selectedPreset, setSelectedPreset] = useState<string>(DEFAULT_PRESET);
+  const [quality, setQuality] = useState<number>(presets[DEFAULT_PRESET].quality);
   const [customWidth, setCustomWidth] = useState<number | ''>('');
   const [customHeight, setCustomHeight] = useState<number | ''>('');
 
-  // Conversion results
   const [conversionResults, setConversionResults] = useState<ConversionResults>({});
   const [previewResults, setPreviewResults] = useState<ConversionResults>({});
 
-  // AI naming
   const [aiFileNames, setAiFileNames] = useState<AiFileNames>({});
   const [isNaming, setIsNaming] = useState<string | null>(null);
   const [namingTimer, setNamingTimer] = useState<number>(0);
 
-  // Processing states
   const [isConverting, setIsConverting] = useState<boolean>(false);
   const [conversionProgress, setConversionProgress] = useState<number>(0);
   const [convertingFile, setConvertingFile] = useState<string | null>(null);
@@ -55,96 +53,89 @@ export function useImageConverter() {
   const debouncedHeight = useDebounce(customHeight, 300);
   const debouncedQuality = useDebounce(quality, 300);
 
-  // Memoize resize options to prevent unnecessary recalculations
-  const resizeOptions = useMemo(() =>
-    getResizeOptions(debouncedPreset, debouncedWidth, debouncedHeight),
+  const resizeOptions = useMemo(
+    () => getResizeOptions(debouncedPreset, debouncedWidth, debouncedHeight),
     [debouncedPreset, debouncedWidth, debouncedHeight]
   );
 
-  // Memoized preview generation function
   const generatePreviews = useCallback(async () => {
-    // Cancel any existing preview generation
     if (previewAbortController.current) {
       previewAbortController.current.abort();
     }
     previewAbortController.current = new AbortController();
+    const signal = previewAbortController.current.signal;
 
-    const previewPromises = files.map(file => {
-        return convertFileToWebP(file, debouncedQuality / 100, resizeOptions, true);
-    });
+    const previewPromises = files.map(file =>
+      convertFileToWebP(file, debouncedQuality / 100, resizeOptions, true)
+    );
 
     try {
-        const results = await Promise.allSettled(previewPromises);
-        const newPreviewResults: ConversionResults = {};
+      const results = await Promise.allSettled(previewPromises);
+      if (signal.aborted) return;
 
-        results.forEach((result, index) => {
-            if (result.status === 'fulfilled' && result.value) {
-                newPreviewResults[result.value.originalName] = result.value;
-            } else if (result.status === 'rejected') {
-                console.error(`Preview failed for ${files[index].name}:`, result.reason);
-            }
-        });
-
-        setPreviewResults(newPreviewResults);
-    } catch (error) {
-        // Handle cancellation gracefully
-        if (error instanceof Error && error.name !== 'AbortError') {
-            console.error('Preview generation error:', error);
+      const newPreviewResults: ConversionResults = {};
+      results.forEach((result, index) => {
+        if (result.status === 'fulfilled' && result.value) {
+          newPreviewResults[result.value.originalName] = result.value;
+        } else if (result.status === 'rejected') {
+          console.error(`Preview failed for ${files[index].name}:`, result.reason);
         }
+      });
+
+      setPreviewResults(newPreviewResults);
+    } catch (err) {
+      if (err instanceof Error && err.name !== 'AbortError') {
+        console.error('Preview generation error:', err);
+      }
     }
   }, [files, debouncedQuality, resizeOptions]);
 
   useEffect(() => {
     if (files.length === 0) {
-        setPreviewResults({});
-        return;
+      setPreviewResults({});
+      return;
     }
-
     generatePreviews();
   }, [files.length, generatePreviews]);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
-      // Cancel any pending preview generation
       if (previewAbortController.current) {
         previewAbortController.current.abort();
       }
-      // Clear any pending timers
       if (timerIntervalRef.current) {
         clearInterval(timerIntervalRef.current);
       }
     };
   }, []);
 
-  const handlePresetChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    const presetKey = e.target.value;
+  const handlePresetSelect = useCallback((presetKey: string) => {
     setSelectedPreset(presetKey);
     setQuality(presets[presetKey].quality);
     setConversionResults({});
     setDownloadReady(false);
   }, []);
-  
+
+  // Keep for backward compat with Select onChange pattern
+  const handlePresetChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    handlePresetSelect(e.target.value);
+  }, [handlePresetSelect]);
+
   const handleQualitySliderChange = (values: number[]) => {
-    if (selectedPreset !== 'custom') {
-      return; // Do nothing if not in custom mode
-    }
+    if (selectedPreset !== 'custom') return;
 
     setQuality(values[0]);
     setConversionResults({});
     setDownloadReady(false);
 
-    // Force preview regeneration for immediate feedback
     if (files.length > 0) {
       const forcePreviewUpdate = async () => {
-        const resizeOptions = getResizeOptions('custom', customWidth, customHeight);
-
+        const opts = getResizeOptions('custom', customWidth, customHeight);
         const previewPromises = files.map(file =>
-          convertFileToWebP(file, values[0] / 100, resizeOptions, true)
+          convertFileToWebP(file, values[0] / 100, opts, true)
         );
         const results = await Promise.allSettled(previewPromises);
         const newPreviewResults: ConversionResults = {};
-
         results.forEach((result, index) => {
           if (result.status === 'fulfilled' && result.value) {
             newPreviewResults[result.value.originalName] = result.value;
@@ -152,82 +143,110 @@ export function useImageConverter() {
             console.error(`Force preview failed for ${files[index].name}:`, result.reason);
           }
         });
-
         setPreviewResults(newPreviewResults);
       };
-
-      // Small delay to avoid overwhelming the system during rapid slider movement
       setTimeout(forcePreviewUpdate, 50);
     }
   };
 
   const addFiles = (newFiles: FileList | null) => {
     if (!newFiles) return;
-    const validFiles = Array.from(newFiles).filter(file => ['image/jpeg', 'image/png', 'image/gif', 'image/bmp'].includes(file.type));
-    if (validFiles.length === 0 && newFiles.length > 0) { setError(`No valid image files selected.`); return; }
-    
-    const firstImage = validFiles[0];
+
+    const validFiles = Array.from(newFiles).filter(file =>
+      ['image/jpeg', 'image/png', 'image/gif', 'image/bmp', 'image/webp'].includes(file.type)
+    );
+
+    if (validFiles.length === 0 && newFiles.length > 0) {
+      setError('No valid image files selected. Supported: JPEG, PNG, GIF, BMP, WebP');
+      return;
+    }
+
+    const oversizedFiles = validFiles.filter(f => f.size > MAX_FILE_SIZE_BYTES);
+    if (oversizedFiles.length > 0) {
+      setError(
+        `${oversizedFiles.map(f => f.name).join(', ')} exceed${oversizedFiles.length === 1 ? 's' : ''} the ${MAX_FILE_SIZE_MB}MB limit and ${oversizedFiles.length === 1 ? 'was' : 'were'} skipped.`
+      );
+    }
+
+    const acceptableFiles = validFiles.filter(f => f.size <= MAX_FILE_SIZE_BYTES);
+
+    const firstImage = acceptableFiles[0];
     if (firstImage) {
-        const img = new Image();
-        img.src = URL.createObjectURL(firstImage);
-        img.onload = () => {
-            setCustomWidth(img.width);
-            setCustomHeight(img.height);
-            setOriginalDimensions({ width: img.width, height: img.height });
-            URL.revokeObjectURL(img.src);
-        };
+      const img = new Image();
+      const url = URL.createObjectURL(firstImage);
+      img.src = url;
+      img.onload = () => {
+        setCustomWidth(img.width);
+        setCustomHeight(img.height);
+        setOriginalDimensions({ width: img.width, height: img.height });
+        URL.revokeObjectURL(url);
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+      };
     }
 
     setFiles(prevFiles => {
-        const existingFileNames = new Set(prevFiles.map(f => f.name));
-        const uniqueNewFiles = validFiles.filter(f => !existingFileNames.has(f.name));
-        return [...prevFiles, ...uniqueNewFiles];
+      const existingFileNames = new Set(prevFiles.map(f => f.name));
+      const uniqueNewFiles = acceptableFiles.filter(f => !existingFileNames.has(f.name));
+      return [...prevFiles, ...uniqueNewFiles];
     });
-    setError('');
+
+    if (oversizedFiles.length === 0) setError('');
     setDownloadReady(false);
   };
-  
+
   const handleWidthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const newWidth = parseInt(e.target.value, 10);
-      setCustomWidth(isNaN(newWidth) ? '' : newWidth);
-      if (originalDimensions && newWidth) {
-          const aspectRatio = originalDimensions.width / originalDimensions.height;
-          setCustomHeight(Math.round(newWidth / aspectRatio));
-      }
-      setDownloadReady(false);
-      setConversionResults({});
+    const raw = parseInt(e.target.value, 10);
+    const newWidth = isNaN(raw) ? '' : Math.max(1, Math.min(raw, 8000));
+    setCustomWidth(newWidth);
+    if (originalDimensions && typeof newWidth === 'number') {
+      const aspectRatio = originalDimensions.width / originalDimensions.height;
+      setCustomHeight(Math.max(1, Math.round(newWidth / aspectRatio)));
+    }
+    setDownloadReady(false);
+    setConversionResults({});
   };
 
   const handleHeightChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const newHeight = parseInt(e.target.value, 10);
-      setCustomHeight(isNaN(newHeight) ? '' : newHeight);
-      if (originalDimensions && newHeight) {
-          const aspectRatio = originalDimensions.width / originalDimensions.height;
-          setCustomWidth(Math.round(newHeight * aspectRatio));
-      }
-      setDownloadReady(false);
-      setConversionResults({});
+    const raw = parseInt(e.target.value, 10);
+    const newHeight = isNaN(raw) ? '' : Math.max(1, Math.min(raw, 8000));
+    setCustomHeight(newHeight);
+    if (originalDimensions && typeof newHeight === 'number') {
+      const aspectRatio = originalDimensions.width / originalDimensions.height;
+      setCustomWidth(Math.max(1, Math.round(newHeight * aspectRatio)));
+    }
+    setDownloadReady(false);
+    setConversionResults({});
   };
-  
+
   const handleAspectRatioChange = (ratio: number) => {
-      if (originalDimensions) {
-          const newDimensions = calculateAspectRatioDimensions(originalDimensions, ratio);
-          setCustomWidth(newDimensions.width);
-          setCustomHeight(newDimensions.height);
-      }
-      setDownloadReady(false);
-      setConversionResults({});
+    if (originalDimensions) {
+      const newDimensions = calculateAspectRatioDimensions(originalDimensions, ratio);
+      setCustomWidth(newDimensions.width);
+      setCustomHeight(newDimensions.height);
+    }
+    setDownloadReady(false);
+    setConversionResults({});
   };
 
   const resetState = () => {
-      setFiles([]); setConversionResults({}); setPreviewResults({});
-      setSelectedPreset('whytes_hero'); setQuality(presets.whytes_hero.quality);
-      setDownloadReady(false); setConversionProgress(0);
-      setCustomWidth(''); setCustomHeight(''); setOriginalDimensions(null);
-      setAiFileNames({}); setIsNaming(null);
-      if(fileInputRef.current) fileInputRef.current.value = "";
+    setFiles([]);
+    setConversionResults({});
+    setPreviewResults({});
+    setSelectedPreset(DEFAULT_PRESET);
+    setQuality(presets[DEFAULT_PRESET].quality);
+    setDownloadReady(false);
+    setConversionProgress(0);
+    setCustomWidth('');
+    setCustomHeight('');
+    setOriginalDimensions(null);
+    setAiFileNames({});
+    setIsNaming(null);
+    setError('');
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
-  
+
   const handleBulkConvert = async () => {
     if (files.length === 0) return;
     setIsConverting(true);
@@ -235,85 +254,97 @@ export function useImageConverter() {
     setError('');
     setConversionProgress(0);
 
-    const resizeOptions = getResizeOptions(selectedPreset, customWidth, customHeight);
-
+    const opts = getResizeOptions(selectedPreset, customWidth, customHeight);
     const newResults: ConversionResults = {};
+
     for (let i = 0; i < files.length; i++) {
-        const currentFile = files[i];
-        setConvertingFile(currentFile.name);
-        try {
-            const result = await convertFileToWebP(currentFile, quality / 100, resizeOptions);
-            newResults[result.originalName] = result;
-            setConversionResults(prev => ({...prev, ...newResults}));
-        } catch (e: any) {
-            console.error(e);
-            setError(prevError => `${prevError}\n${e.message}`);
-        }
-        setConversionProgress(((i + 1) / files.length) * 100);
+      const currentFile = files[i];
+      setConvertingFile(currentFile.name);
+      try {
+        const result = await convertFileToWebP(currentFile, quality / 100, opts);
+        newResults[result.originalName] = result;
+        setConversionResults(prev => ({ ...prev, [result.originalName]: result }));
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : 'Conversion failed';
+        console.error(msg);
+        setError(prev => (prev ? `${prev}\n${msg}` : msg));
+      }
+      setConversionProgress(((i + 1) / files.length) * 100);
     }
 
     setConvertingFile(null);
     setIsConverting(false);
     setDownloadReady(true);
   };
-  
+
   const handleDownloadAll = async () => {
     const JSZip = (window as any).JSZip;
     if (!JSZip) {
-      setError("JSZip library not loaded.");
+      setError('Download library not loaded. Please refresh the page.');
       return;
     }
     setIsZipping(true);
     const zip = new JSZip();
-    Object.values(conversionResults).filter(r => r && r.webpDataUrl).forEach(result => {
+
+    Object.values(conversionResults)
+      .filter(r => r && r.webpDataUrl)
+      .forEach(result => {
         const aiName = aiFileNames[result.originalName];
-        const baseName = aiName ? aiName : result.originalName.split('.').slice(0, -1).join('.');
-        const newFileName = `${baseName}.webp`;
+        const baseName = aiName
+          ? aiName
+          : result.originalName.split('.').slice(0, -1).join('.');
+        const ext = result.outputFormat === 'png' ? 'png' : 'webp';
+        const newFileName = `${baseName}.${ext}`;
         const base64Data = result.webpDataUrl.split(',')[1];
         zip.file(newFileName, base64Data, { base64: true });
-    });
+      });
+
     try {
-        const content = await zip.generateAsync({ type: 'blob' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(content);
-        link.download = 'converted_images.zip';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(link.href);
+      const content = await zip.generateAsync({ type: 'blob' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(content);
+      link.download = 'converted_images.zip';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
     } catch (e) {
-        setError("Failed to create zip file."); console.error(e);
+      setError('Failed to create zip file.');
+      console.error(e);
     } finally {
-        setIsZipping(false);
+      setIsZipping(false);
     }
   };
-  
+
   const handleAiRename = async (file: File) => {
-      setIsNaming(file.name);
-      setNamingTimer(0);
-      setError('');
+    setIsNaming(file.name);
+    setNamingTimer(0);
+    setError('');
 
+    if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+    timerIntervalRef.current = setInterval(() => {
+      setNamingTimer(prev => prev + 1);
+    }, 1000);
+
+    try {
+      const sanitizedName = await renameWithAi(file);
+      setAiFileNames(prev => ({ ...prev, [file.name]: sanitizedName }));
+    } catch (err) {
+      console.error('AI rename failed:', err);
+      const msg = err instanceof Error ? err.message : 'Failed to generate AI name.';
+      setError(msg);
+    } finally {
       if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
-      timerIntervalRef.current = setInterval(() => {
-          setNamingTimer(prev => prev + 1);
-      }, 1000);
-
-      try {
-        const sanitizedName = await renameWithAi(file);
-        setAiFileNames(prev => ({ ...prev, [file.name]: sanitizedName }));
-      } catch (err) {
-          console.error("AI rename failed:", err);
-          setError("Failed to generate AI name. Please try again.");
-      } finally {
-          if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
-          setIsNaming(null);
-      }
+      setIsNaming(null);
+    }
   };
 
-  const allFilesConverted = useMemo(() =>
-    files.length > 0 && files.every(f => conversionResults[f.name]),
+  const allFilesConverted = useMemo(
+    () => files.length > 0 && files.every(f => conversionResults[f.name]),
     [files, conversionResults]
   );
+
+  const currentPreset = presets[selectedPreset];
 
   return {
     files,
@@ -333,7 +364,9 @@ export function useImageConverter() {
     error,
     isZipping,
     fileInputRef,
+    currentPreset,
     addFiles,
+    handlePresetSelect,
     handlePresetChange,
     handleQualitySliderChange,
     handleWidthChange,
