@@ -1,104 +1,101 @@
 /*
- * Core styles for the animated background
+ * Animated background — lovable.dev-style floating orbs
+ * Four large, blurred orbs in purple/indigo/blue drift slowly around the page.
 */
 
-/* The main container that holds the entire background effect.
- * It's fixed to cover the whole viewport and sits behind all other content.
-*/
 .background-gradient-container {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    overflow: hidden; /* Hide parts of blobs that go off-screen */
-    z-index: -1; /* Place it behind all other content */
+    overflow: hidden;
+    z-index: -1;
 }
 
-/* * This is the "secret sauce". A very large blur filter is applied to all
- * child elements (the colored blobs), which gives them their soft,
- * ethereal, and blended appearance.
-*/
+/* Large blur makes orbs blend into soft, atmospheric pools of color */
 .blur-filter {
-    filter: blur(120px);
+    filter: blur(140px);
     width: 100%;
     height: 100%;
+    position: relative;
 }
 
-/* * Base styles for each colored "blob".
- * They are absolutely positioned to allow them to be placed anywhere
- * within the container and overlap each other.
-*/
 .ellipse {
     position: absolute;
-    border-radius: 50%; /* Makes the divs into circles */
-    /* The animation is applied here. It combines two animations:
-     * 'appear' runs for 1.5s to fade the blob in.
-     * 'scale' runs for 5s to give it a subtle growth effect.
-     * 'forwards' ensures the elements stay at their final animation state.
-    */
-    animation: appear 1.5s ease forwards, scale 5s ease forwards;
+    border-radius: 50%;
+    opacity: 0; /* starts transparent, appear animation fades in */
 }
 
-/*
- * A single, large ellipse positioned at the bottom center of the page.
-*/
+/* Orb 1: Large violet — top-right corner, drifts slowly */
 .ellipse-1 {
-    background: radial-gradient(circle at 50% 50%, rgba(247, 145, 1, 0.6) 0%, rgba(153, 204, 255, 0.4) 40%, rgba(255, 255, 255, 0) 70%);
-    width: 1000px;
-    height: 1000px;
-    bottom: -600px; /* Positions the ellipse at the bottom */
-    left: 50%; /* Centers the ellipse horizontally */
-    transform: translateX(-50%); /* Ensures perfect horizontal centering */
-    animation: appear 1.5s ease forwards, scale 5s ease forwards, gentle-pulse 8s ease-in-out infinite 5s;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.35) 0%, rgba(99, 102, 241, 0) 70%);
+    width: 900px;
+    height: 900px;
+    top: -300px;
+    right: -200px;
+    animation: appear 2s ease forwards, float-1 35s ease-in-out infinite;
 }
 
-
-/*
- * Keyframe Animations
-*/
-
-/* Fades the element from completely transparent to fully opaque */
-@keyframes appear {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
-
-/* Scales the element from 80% of its size to its full size while maintaining horizontal centering */
-@keyframes scale {
-    from {
-        transform: translateX(-50%) scale(0.8);
-    }
-    to {
-        transform: translateX(-50%) scale(1);
-    }
-}
-
-/* Additional ellipse styles */
+/* Orb 2: Large blue — bottom-left corner, drifts slowly */
 .ellipse-2 {
-    animation: appear 1.5s ease forwards, scale 5s ease forwards, gentle-pulse 8s ease-in-out infinite 6s;
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.25) 0%, rgba(59, 130, 246, 0) 70%);
+    width: 800px;
+    height: 800px;
+    bottom: -300px;
+    left: -200px;
+    animation: appear 2s 0.5s ease both, float-2 40s ease-in-out infinite;
 }
 
+/* Orb 3: Medium deep-violet — center-left, drifts slowly */
 .ellipse-3 {
-    animation: appear 1.5s ease forwards, scale 5s ease forwards, gentle-pulse 8s ease-in-out infinite 7s;
+    background: radial-gradient(circle, rgba(124, 58, 237, 0.2) 0%, rgba(124, 58, 237, 0) 70%);
+    width: 600px;
+    height: 600px;
+    top: 30%;
+    left: -100px;
+    animation: appear 2s 1s ease both, float-3 30s ease-in-out infinite;
 }
 
+/* Orb 4: Smaller indigo — center-right, drifts slowly */
 .ellipse-4 {
-    animation: appear 1.5s ease forwards, scale 5s ease forwards, gentle-pulse 8s ease-in-out infinite 8s;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.18) 0%, rgba(99, 102, 241, 0) 70%);
+    width: 500px;
+    height: 500px;
+    top: 25%;
+    right: -80px;
+    animation: appear 2s 1.5s ease both, float-4 45s ease-in-out infinite;
 }
 
-/* Subtle pulsing animation for the ellipses */
-@keyframes gentle-pulse {
-    0%, 100% {
-        transform: translateX(-50%) scale(1);
-        opacity: 1;
-    }
-    50% {
-        transform: translateX(-50%) scale(1.02);
-        opacity: 0.95;
-    }
+/* Fade in on load */
+@keyframes appear {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* Each orb drifts in a unique, slow pattern — long enough to be nearly imperceptible */
+@keyframes float-1 {
+    0%, 100% { transform: translate(0, 0); }
+    25%       { transform: translate(-40px, 30px); }
+    50%       { transform: translate(20px, -50px); }
+    75%       { transform: translate(-20px, 40px); }
+}
+
+@keyframes float-2 {
+    0%, 100% { transform: translate(0, 0); }
+    33%       { transform: translate(50px, -30px); }
+    66%       { transform: translate(-30px, -20px); }
+}
+
+@keyframes float-3 {
+    0%, 100% { transform: translate(0, 0); }
+    25%       { transform: translate(30px, 40px); }
+    50%       { transform: translate(-40px, -20px); }
+    75%       { transform: translate(20px, -30px); }
+}
+
+@keyframes float-4 {
+    0%, 100% { transform: translate(0, 0); }
+    40%       { transform: translate(-30px, 50px); }
+    80%       { transform: translate(40px, -20px); }
 }
