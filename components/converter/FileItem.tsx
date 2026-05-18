@@ -48,7 +48,7 @@ const FileItem: React.FC<Props> = ({ file, result, preview, aiFileName, isNaming
                     <img
                         src={objectUrl}
                         alt={file.name}
-                        className="w-12 h-12 object-cover rounded-md shrink-0"
+                        className="w-14 h-14 object-cover rounded-md shrink-0"
                     />
                     <div className="overflow-hidden">
                         <p className="text-sm font-medium text-foreground truncate">{displayName}</p>
@@ -70,13 +70,21 @@ const FileItem: React.FC<Props> = ({ file, result, preview, aiFileName, isNaming
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                     {isNaming === file.name && (
-                        <div className="flex items-center justify-center h-8 w-24 text-sm text-green-500 font-semibold tabular-nums">
-                            AI {namingTimer}s
+                        <div className="flex items-center gap-1.5 h-8 px-2 text-sm text-green-500 font-semibold">
+                            <svg className="animate-spin h-3.5 w-3.5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                            </svg>
+                            Naming…
                         </div>
                     )}
                     {convertingFile === file.name && !result && (
-                        <div className="flex items-center justify-center h-8 w-24 text-sm text-primary font-semibold">
-                            Converting...
+                        <div className="flex items-center gap-1.5 h-8 px-2 text-sm text-primary font-semibold">
+                            <svg className="animate-spin h-3.5 w-3.5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                            </svg>
+                            Converting…
                         </div>
                     )}
                     {isNaming !== file.name && convertingFile !== file.name && (
@@ -92,9 +100,20 @@ const FileItem: React.FC<Props> = ({ file, result, preview, aiFileName, isNaming
                                 </TooltipContent>
                             </Tooltip>
                             {result && (
-                                <a href={result.webpDataUrl} download={downloadName}>
-                                    <Button size="sm" variant="outline-primary" className="text-foreground" {...({} as any)}>Save</Button>
-                                </a>
+                                <Button
+                                    size="sm"
+                                    variant="outline-primary"
+                                    className="text-foreground"
+                                    onClick={() => {
+                                        const a = document.createElement('a');
+                                        a.href = result.webpDataUrl;
+                                        a.download = downloadName;
+                                        a.click();
+                                    }}
+                                    {...({} as any)}
+                                >
+                                    Save
+                                </Button>
                             )}
                         </>
                     )}

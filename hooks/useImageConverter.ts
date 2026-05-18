@@ -116,37 +116,11 @@ export function useImageConverter() {
     setDownloadReady(false);
   }, []);
 
-  // Keep for backward compat with Select onChange pattern
-  const handlePresetChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    handlePresetSelect(e.target.value);
-  }, [handlePresetSelect]);
-
   const handleQualitySliderChange = (values: number[]) => {
     if (selectedPreset !== 'custom') return;
-
     setQuality(values[0]);
     setConversionResults({});
     setDownloadReady(false);
-
-    if (files.length > 0) {
-      const forcePreviewUpdate = async () => {
-        const opts = getResizeOptions('custom', customWidth, customHeight);
-        const previewPromises = files.map(file =>
-          convertFileToWebP(file, values[0] / 100, opts, true)
-        );
-        const results = await Promise.allSettled(previewPromises);
-        const newPreviewResults: ConversionResults = {};
-        results.forEach((result, index) => {
-          if (result.status === 'fulfilled' && result.value) {
-            newPreviewResults[result.value.originalName] = result.value;
-          } else if (result.status === 'rejected') {
-            console.error(`Force preview failed for ${files[index].name}:`, result.reason);
-          }
-        });
-        setPreviewResults(newPreviewResults);
-      };
-      setTimeout(forcePreviewUpdate, 50);
-    }
   };
 
   const addFiles = (newFiles: FileList | null) => {
@@ -263,7 +237,6 @@ export function useImageConverter() {
       try {
         const result = await convertFileToWebP(currentFile, quality / 100, opts);
         newResults[result.originalName] = result;
-        setConversionResults(prev => ({ ...prev, [result.originalName]: result }));
       } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : 'Conversion failed';
         console.error(msg);
@@ -272,9 +245,10 @@ export function useImageConverter() {
       setConversionProgress(((i + 1) / files.length) * 100);
     }
 
+    setConversionResults(newResults);
     setConvertingFile(null);
     setIsConverting(false);
-    setDownloadReady(true);
+    if (Object.keys(newResults).length > 0) setDownloadReady(true);
   };
 
   const handleDownloadAll = async () => {
@@ -340,8 +314,8 @@ export function useImageConverter() {
   };
 
   const allFilesConverted = useMemo(
-    () => files.length > 0 && files.every(f => conversionResults[f.name]),
-    [files, conversionResults]
+    () => files.length > 0 && downloadReady && Object.keys(conversionResults).length > 0,
+    [files.length, downloadReady, conversionResults]
   );
 
   const currentPreset = presets[selectedPreset];
@@ -367,7 +341,6 @@ export function useImageConverter() {
     currentPreset,
     addFiles,
     handlePresetSelect,
-    handlePresetChange,
     handleQualitySliderChange,
     handleWidthChange,
     handleHeightChange,

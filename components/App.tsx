@@ -1,12 +1,6 @@
 import React from "react";
 import Image from "next/image";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useImageConverter } from "../hooks/useImageConverter";
@@ -16,7 +10,7 @@ import FileUpload from "./converter/FileUpload";
 import Settings from "./converter/Settings";
 import FileList from "./converter/FileList";
 import Actions from "./converter/Actions";
-import AboutSection from "./AboutSection";
+
 
 const App: React.FC = () => {
 	const {
@@ -39,7 +33,6 @@ const App: React.FC = () => {
 		fileInputRef,
 		addFiles,
 		handlePresetSelect,
-		handlePresetChange,
 		handleQualitySliderChange,
 		handleWidthChange,
 		handleHeightChange,
@@ -55,23 +48,21 @@ const App: React.FC = () => {
 		<>
 		<ErrorBoundary>
 			<TooltipProvider>
-				<div className='text-foreground min-h-screen w-full flex flex-col items-center justify-start px-4 py-4 sm:py-6 md:py-8 pb-8 md:pb-12 transition-colors duration-300 overflow-y-auto scroll-smooth'>
-					<div className='mb-4 flex flex-col items-center px-4 text-center md:mb-10'>
-						<div className='flex w-full flex-col items-center justify-center gap-2'></div>
-						<h1 className='font-grotesk mb-2 flex items-center gap-1 text-2xl font-medium leading-none text-foreground sm:text-3xl md:mb-2.5 md:gap-0 md:text-5xl'>
-							<span className='pt-0.5 tracking-tight md:pt-0'>ImageRocket</span>
-							<div className=' flex-col gap-1.5  hidden sm:ml-1 md:ml-1 md:flex'>
-								{/* <Images className='flex h-[22px] sm:h-[28px] md:h-[36px]' /> */}
+				<div className='text-foreground min-h-screen w-full flex flex-col items-center justify-center px-4 py-10 sm:py-14 transition-colors duration-300'>
+					<div className='mb-8 sm:mb-10 flex flex-col items-center text-center'>
+						<h1 className='font-grotesk mb-4 flex items-center gap-3 text-5xl font-bold leading-none tracking-tight text-foreground sm:text-6xl md:text-7xl'>
+							<span>ImageRocket</span>
+							<div className='hidden sm:flex'>
 								<Image
 									src='/icons/Rocket.gif'
 									unoptimized
 									alt='Logo'
-									width={100}
-									height={60}
+									width={80}
+									height={48}
 								/>
 							</div>
 						</h1>
-						<p className='mb-6 max-w-[25ch] text-center text-lg leading-tight text-foreground/65 md:max-w-full md:text-xl'>
+						<p className='max-w-md text-center text-lg font-normal leading-relaxed text-foreground/50 sm:text-xl'>
 							Shrink your images. Speed up your site.
 						</p>
 					</div>
@@ -86,22 +77,8 @@ const App: React.FC = () => {
 						</div>
 					</div>
 					<div className='w-full max-w-4xl mx-auto relative'>
-						<Card className='w-full transition-all duration-150 ease-in-out rounded-3xl border border-muted-foreground text-base shadow-xl focus-within:border-foreground/20 hover:border-foreground/10 focus-within:hover:border-foreground/20 bg-slate-900'>
-							<CardHeader className='text-center'>
-								<CardTitle className=''>Bulk Image to WebP Converter</CardTitle>
-								<CardDescription className=''>
-									<p>
-										Drag and drop images to convert them to webp format using
-										powerful, one-click presets.
-									</p>
-
-									<p className='text-xs italic mt-2'>
-										Supported Input Formats: JPEG, PNG, GIF, BMP
-									</p>
-								</CardDescription>
-							</CardHeader>
-
-							<CardContent className=''>
+						<Card className='w-full transition-all duration-150 ease-in-out rounded-3xl border border-muted-foreground/20 text-base shadow-xl focus-within:border-foreground/20 hover:border-foreground/10 focus-within:hover:border-foreground/20 bg-slate-900'>
+							<CardContent className='pt-6'>
 								<FileUpload fileInputRef={fileInputRef} addFiles={addFiles} />
 
 								{error && (
@@ -124,10 +101,6 @@ const App: React.FC = () => {
 											handleAspectRatioChange={handleAspectRatioChange}
 										/>
 
-										{isConverting && (
-											<Progress value={conversionProgress} className='' />
-										)}
-
 										<FileList
 											files={files}
 											conversionResults={conversionResults}
@@ -138,6 +111,9 @@ const App: React.FC = () => {
 											convertingFile={convertingFile}
 											handleAiRename={handleAiRename}
 										/>
+										{isConverting && (
+											<Progress value={conversionProgress} className='mt-4' />
+										)}
 										<Actions
 											handleBulkConvert={handleBulkConvert}
 											isConverting={isConverting}
@@ -155,10 +131,6 @@ const App: React.FC = () => {
 						</Card>
 					</div>
 
-					{/* About Section */}
-					{/* <div className='w-full max-w-4xl mx-auto relative mt-8 md:mt-12 lg:mt-16'>
-						<AboutSection />
-					</div> */}
 				</div>
 			</TooltipProvider>
 

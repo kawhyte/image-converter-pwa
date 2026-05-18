@@ -105,27 +105,25 @@ const Settings: React.FC<Props> = ({
 					</div>
 				</div>
 
-				{/* Quality Slider — always visible */}
-				<div>
-					<Label className="mb-2 block text-sm" htmlFor="quality">
-						Quality:{" "}
-						<span className="font-bold text-foreground text-base">{quality}</span>
-						{!isCustom && (
-							<span className="text-sm text-muted-foreground ml-2">(preset — switch to Custom to adjust)</span>
-						)}
-					</Label>
-					<Slider
-						id="quality"
-						min={10}
-						max={100}
-						step={1}
-						value={[quality]}
-						onValueChange={(value: number[]) => handleQualitySliderChange(value)}
-						className={`w-full ${!isCustom ? "opacity-40 pointer-events-none" : ""}`}
-						disabled={!isCustom}
-						defaultValue={[quality]}
-					/>
-				</div>
+				{/* Quality Slider — only shown in Custom mode */}
+				{isCustom && (
+					<div>
+						<Label className="mb-2 block text-sm" htmlFor="quality">
+							Quality:{" "}
+							<span className="font-bold text-foreground text-base">{quality}</span>
+						</Label>
+						<Slider
+							id="quality"
+							min={10}
+							max={100}
+							step={1}
+							value={[quality]}
+							onValueChange={(value: number[]) => handleQualitySliderChange(value)}
+							className="w-full"
+							defaultValue={[quality]}
+						/>
+					</div>
+				)}
 
 				{/* Output summary badge */}
 				{currentPreset && (
