@@ -87,29 +87,32 @@ export function convertFileToWebP(
       ctx.drawImage(img, srcX, srcY, srcW, srcH, 0, 0, canvasW, canvasH);
 
       const outputFormat = resizeOptions.outputFormat ?? 'webp';
-      const dataUrl =
-        outputFormat === 'png'
-          ? canvas.toDataURL('image/png')
-          : canvas.toDataURL('image/webp', quality);
-
-      // Release canvas GPU memory immediately after extraction
-      canvas.width = 0;
-      canvas.height = 0;
+      const mimeType = outputFormat === 'png' ? 'image/png' : 'image/webp';
 
       const originalName = file.name;
       const originalSize = file.size;
       const finalW = canvasW;
       const finalH = canvasH;
 
-      fetch(dataUrl)
-        .then(res => res.blob())
-        .then(blob => {
-          const webpSize = blob.size;
-          const reduction =
-            originalSize > 0 ? ((originalSize - webpSize) / originalSize) * 100 : 0;
+      // Use toBlob + FileReader instead of fetch(dataUrl) — avoids CSP connect-src restrictions
+      canvas.toBlob((blob) => {
+        canvas.width = 0;
+        canvas.height = 0;
+
+        if (!blob) {
+          reject(new Error('Failed to encode image'));
+          return;
+        }
+
+        const webpSize = blob.size;
+        const reduction =
+          originalSize > 0 ? ((originalSize - webpSize) / originalSize) * 100 : 0;
+
+        const reader = new FileReader();
+        reader.onload = () => {
           resolve({
             originalName,
-            webpDataUrl: dataUrl,
+            webpDataUrl: reader.result as string,
             outputFormat,
             originalSize,
             webpSize,
@@ -117,8 +120,10 @@ export function convertFileToWebP(
             outputWidth: finalW,
             outputHeight: finalH,
           });
-        })
-        .catch(reject);
+        };
+        reader.onerror = () => reject(new Error('Failed to read image data'));
+        reader.readAsDataURL(blob);
+      }, mimeType, outputFormat !== 'png' ? quality : undefined);
     };
 
     img.onerror = () => {
