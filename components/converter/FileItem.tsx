@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { formatBytes } from '../../lib/utils';
 import type { WebPConversionResult } from '../../lib/imageUtils';
 import { Button } from "@/components/ui/button";
@@ -18,9 +18,13 @@ interface Props {
 const FileItem: React.FC<Props> = ({ file, result, preview, aiFileName, isNaming, namingTimer, convertingFile, handleAiRename }) => {
     const displaySize = result ? result.webpSize : (preview ? preview.webpSize : null);
 
-    // Create objectUrl once per file, revoke on unmount
-    const objectUrl = useMemo(() => URL.createObjectURL(file), [file]);
-    useEffect(() => () => URL.revokeObjectURL(objectUrl), [objectUrl]);
+    // Create and clean up objectUrl safely — handles React Strict Mode double-invoke
+    const [objectUrl, setObjectUrl] = useState<string>('');
+    useEffect(() => {
+        const url = URL.createObjectURL(file);
+        setObjectUrl(url);
+        return () => URL.revokeObjectURL(url);
+    }, [file]);
 
     const outputFormat = result?.outputFormat ?? 'webp';
     const ext = outputFormat === 'png' ? 'png' : 'webp';

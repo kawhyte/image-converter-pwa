@@ -56,10 +56,10 @@ const Settings: React.FC<Props> = ({
 
 				{/* Preset Groups */}
 				<div>
-					<Label className="text-muted-foreground mb-3 block text-xs uppercase tracking-wide">
+					<Label className="text-muted-foreground mb-3 block text-sm font-semibold uppercase tracking-wide">
 						Optimization Preset
 					</Label>
-					<div className="space-y-3">
+					<div className="space-y-4">
 						{PRESET_GROUPS.map(({ key: groupKey, label }) => {
 							const groupPresets = Object.entries(presets).filter(
 								([, p]) => p.group === (groupKey as PresetGroup)
@@ -67,7 +67,7 @@ const Settings: React.FC<Props> = ({
 							if (groupPresets.length === 0) return null;
 							return (
 								<div key={groupKey}>
-									<p className="text-xs text-muted-foreground mb-1.5 font-medium">{label}</p>
+									<p className="text-sm text-muted-foreground mb-2 font-semibold">{label}</p>
 									<div className="flex flex-wrap gap-2">
 										{groupPresets.map(([key, preset]) => {
 											const isSelected = selectedPreset === key;
@@ -77,22 +77,22 @@ const Settings: React.FC<Props> = ({
 													<TooltipTrigger asChild>
 														<button
 															onClick={() => handlePresetSelect(key)}
-															className={`inline-flex flex-col items-start px-3 py-2 rounded-lg border text-left text-xs transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+															className={`inline-flex flex-col items-start px-3 py-2.5 rounded-lg border text-left transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
 																isSelected
 																	? 'border-primary bg-primary/10 text-foreground'
 																	: 'border-border bg-card/50 text-muted-foreground hover:border-primary/50 hover:text-foreground'
 															}`}
 														>
-															<span className="font-semibold text-[11px] leading-tight">{preset.name}</span>
-															<span className="flex items-center gap-1 mt-0.5">
-																<span className="text-[10px] opacity-70">{presetDimensionLabel(key)}</span>
-																<span className={`text-[9px] px-1 py-0 rounded font-medium uppercase tracking-wide ${isPng ? 'bg-amber-500/20 text-amber-400' : 'bg-blue-500/20 text-blue-400'}`}>
+															<span className="font-semibold text-sm leading-snug">{preset.name}</span>
+															<span className="flex items-center gap-1.5 mt-1">
+																<span className="text-xs opacity-80">{presetDimensionLabel(key)}</span>
+																<span className={`text-[11px] px-1.5 py-0.5 rounded font-semibold uppercase tracking-wide ${isPng ? 'bg-amber-500/20 text-amber-400' : 'bg-blue-500/20 text-blue-400'}`}>
 																	{preset.outputFormat}
 																</span>
 															</span>
 														</button>
 													</TooltipTrigger>
-													<TooltipContent side="bottom" className="max-w-[200px] text-xs">
+													<TooltipContent side="bottom" className="max-w-[220px] text-sm">
 														<p>{preset.description}</p>
 													</TooltipContent>
 												</Tooltip>
@@ -107,11 +107,11 @@ const Settings: React.FC<Props> = ({
 
 				{/* Quality Slider — always visible */}
 				<div>
-					<Label className="mb-2 block" htmlFor="quality">
+					<Label className="mb-2 block text-sm" htmlFor="quality">
 						Quality:{" "}
-						<span className="font-bold text-foreground">{quality}</span>
+						<span className="font-bold text-foreground text-base">{quality}</span>
 						{!isCustom && (
-							<span className="text-xs text-muted-foreground ml-2">(preset — switch to Custom to adjust)</span>
+							<span className="text-sm text-muted-foreground ml-2">(preset — switch to Custom to adjust)</span>
 						)}
 					</Label>
 					<Slider
@@ -129,8 +129,8 @@ const Settings: React.FC<Props> = ({
 
 				{/* Output summary badge */}
 				{currentPreset && (
-					<div className="flex items-center gap-2 text-xs text-muted-foreground border border-border/50 rounded-lg px-3 py-2 bg-card/30">
-						<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-primary"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+					<div className="flex items-center gap-2 text-sm text-muted-foreground border border-border/50 rounded-lg px-3 py-2.5 bg-card/30">
+						<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-primary"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
 						<span>
 							Output:{" "}
 							<strong className="text-foreground">{presetDimensionLabel(selectedPreset)}</strong>
