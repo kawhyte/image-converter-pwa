@@ -78,8 +78,8 @@ const ImageCompareSlider: React.FC<ImageCompareSliderProps> = ({ beforeImage, af
         </div>
       </div>
       {/* Labels */}
-      <div className="absolute top-2 left-2 bg-black/50 text-white text-xs font-semibold px-2 py-1 rounded">JPEG (528KB)</div>
-      <div className="absolute top-2 right-2 bg-black/50 text-white text-xs font-semibold px-2 py-1 rounded">WebP (70KB)</div>
+      <div className="absolute top-2 left-2 bg-black/50 text-white text-xs font-semibold px-2 py-1 rounded">Before (JPEG)</div>
+      <div className="absolute top-2 right-2 bg-black/50 text-white text-xs font-semibold px-2 py-1 rounded">After (WebP)</div>
     </div>
   );
 };

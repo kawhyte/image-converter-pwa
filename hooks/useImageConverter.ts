@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import JSZip from 'jszip';
 import { useDebounce } from './useDebounce';
 import { presets, getResizeOptions, calculateAspectRatioDimensions } from '../lib/utils';
 import { convertFileToWebP, WebPConversionResult } from '../lib/imageUtils';
@@ -239,7 +240,6 @@ export function useImageConverter() {
         newResults[result.originalName] = result;
       } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : 'Conversion failed';
-        console.error(msg);
         setError(prev => (prev ? `${prev}\n${msg}` : msg));
       }
       setConversionProgress(((i + 1) / files.length) * 100);
@@ -252,11 +252,6 @@ export function useImageConverter() {
   };
 
   const handleDownloadAll = async () => {
-    const JSZip = (window as any).JSZip;
-    if (!JSZip) {
-      setError('Download library not loaded. Please refresh the page.');
-      return;
-    }
     setIsZipping(true);
     const zip = new JSZip();
 

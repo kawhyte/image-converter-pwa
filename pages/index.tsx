@@ -1,8 +1,6 @@
 import Head from 'next/head';
-import Script from 'next/script';
-import App from '../components/App'; // We will move the component logic here
+import App from '../components/App';
 import Navbar from '../components/layout/Navbar';
-import AboutPage from './about';
 
 const Home: React.FC = () => {
   return (
@@ -20,13 +18,6 @@ const Home: React.FC = () => {
   
       </main>
 
-      {/* External libraries are loaded via Next.js Script component */}
-      <Script
-        src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"
-        integrity="sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG"
-        crossOrigin="anonymous"
-        strategy="lazyOnload"
-      />
     </div>
   );
 };
