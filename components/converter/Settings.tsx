@@ -22,6 +22,8 @@ interface Props {
 	customHeight: number | "";
 	handleHeightChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
 	handleAspectRatioChange: (ratio: number) => void;
+	cropToFit: boolean;
+	handleCropToggle: () => void;
 }
 
 function presetDimensionLabel(key: string): string {
@@ -46,9 +48,12 @@ const Settings: React.FC<Props> = ({
 	customHeight,
 	handleHeightChange,
 	handleAspectRatioChange,
+	cropToFit,
+	handleCropToggle,
 }) => {
 	const currentPreset = presets[selectedPreset];
 	const isCustom = selectedPreset === 'custom';
+	const showCropToggle = currentPreset?.cropMode === 'exact' && currentPreset?.outputFormat !== 'png';
 
 	return (
 		<TooltipProvider>
@@ -125,6 +130,25 @@ const Settings: React.FC<Props> = ({
 					</div>
 				)}
 
+				{/* Crop-to-fit toggle — only for non-PNG exact presets */}
+				{showCropToggle && (
+					<div className="flex items-start gap-3 px-3 py-2.5 rounded-lg border border-border/50 bg-card/30">
+						<input
+							type="checkbox"
+							id="crop-to-fit"
+							checked={cropToFit}
+							onChange={handleCropToggle}
+							className="mt-0.5 h-4 w-4 rounded border-border accent-primary cursor-pointer shrink-0"
+						/>
+						<label htmlFor="crop-to-fit" className="cursor-pointer text-sm leading-snug">
+							<span className="font-semibold text-foreground">Crop to exact fit</span>
+							<span className="block text-muted-foreground/70 text-xs mt-0.5">
+								Center-crop to exact dimensions. Off by default — Sanity CDN handles smart crop via hotspot data.
+							</span>
+						</label>
+					</div>
+				)}
+
 				{/* Output summary badge */}
 				{currentPreset && (
 					<div className="flex items-center gap-2 text-sm text-muted-foreground border border-border/50 rounded-lg px-3 py-2.5 bg-card/30">
@@ -136,8 +160,11 @@ const Settings: React.FC<Props> = ({
 							<strong className="text-foreground uppercase">{currentPreset.outputFormat}</strong>
 							{" · "}
 							<strong className="text-foreground">{quality}% quality</strong>
-							{currentPreset.cropMode === 'exact' && (
+							{currentPreset.cropMode === 'exact' && cropToFit && (
 								<span className="ml-1 text-muted-foreground/70">— center-cropped to fit</span>
+							)}
+							{currentPreset.cropMode === 'exact' && !cropToFit && (
+								<span className="ml-1 text-muted-foreground/70">— aspect ratio preserved</span>
 							)}
 							{currentPreset.cropMode === 'resize' && (
 								<span className="ml-1 text-muted-foreground/70">— aspect ratio preserved</span>

@@ -25,60 +25,60 @@ export const presets: { [key: string]: Preset } = {
   hotel_food_cover: {
     name: 'Hotel & Food Cover',
     description: 'Hotel listing card, food cover, arena card images.',
-    quality: 80,
+    quality: 88,
     outputFormat: 'webp',
     cropMode: 'exact',
-    width: 1200,
-    height: 800,
+    width: 2400,
+    height: 1600,
     group: 'cover',
   },
   travel_guide_cover: {
     name: 'Travel Guide Cover',
     description: 'Guide listing card and guide hero.',
-    quality: 80,
+    quality: 88,
     outputFormat: 'webp',
     cropMode: 'exact',
-    width: 1600,
-    height: 840,
+    width: 2400,
+    height: 1260,
     group: 'cover',
   },
   arena_hero: {
     name: 'Arena Hero Photo',
     description: 'Top gallery block on arena detail page.',
-    quality: 80,
+    quality: 88,
     outputFormat: 'webp',
     cropMode: 'exact',
-    width: 1600,
-    height: 1067,
+    width: 3200,
+    height: 2134,
     group: 'cover',
   },
   seat_view: {
     name: 'View From My Seat',
-    description: 'Seat view photos — 4:3 landscape. Page crops every photo to 4:3; landscape shots fill the frame. Portrait shots (phone vertical) lose top/bottom — shoot landscape for best results.',
-    quality: 80,
+    description: 'Seat view photos — 4:3 landscape. Sanity CDN handles smart crop using hotspot data. Upload at full resolution for best results.',
+    quality: 88,
     outputFormat: 'webp',
     cropMode: 'exact',
-    width: 1600,
-    height: 1200,
+    width: 2400,
+    height: 1800,
     group: 'cover',
   },
   gallery: {
     name: 'Gallery & Body Images',
     description: 'Photo grids and inline article photos — longest edge resized, aspect ratio preserved.',
-    quality: 80,
+    quality: 88,
     outputFormat: 'webp',
     cropMode: 'resize',
-    maxEdge: 1600,
+    maxEdge: 2400,
     group: 'gallery',
   },
   card_items: {
     name: 'Arena Food & Drinks',
-    description: 'Rate individual food/drink items tried at this arena. 3:2 landscape — center-cropped to 900×600.',
-    quality: 75,
+    description: 'Rate individual food/drink items tried at this arena. 3:2 landscape — resized to 1800×1200.',
+    quality: 88,
     outputFormat: 'webp',
     cropMode: 'exact',
-    width: 900,
-    height: 600,
+    width: 1800,
+    height: 1200,
     group: 'card',
   },
   team_logos: {
@@ -104,7 +104,7 @@ export const presets: { [key: string]: Preset } = {
   custom: {
     name: 'Custom',
     description: 'Set your own dimensions and quality.',
-    quality: 80,
+    quality: 88,
     outputFormat: 'webp',
     cropMode: 'custom',
     group: 'custom',
@@ -150,7 +150,8 @@ export function formatBytes(bytes: number, decimals: number = 2): string {
 export function getResizeOptions(
   selectedPreset: string,
   customWidth: number | '',
-  customHeight: number | ''
+  customHeight: number | '',
+  cropToFit: boolean = false
 ): ResizeOptions {
   const preset = presets[selectedPreset];
   if (!preset) {
@@ -158,10 +159,18 @@ export function getResizeOptions(
   }
 
   if (preset.cropMode === 'exact') {
+    if (cropToFit) {
+      return {
+        cropMode: 'exact',
+        targetWidth: preset.width,
+        targetHeight: preset.height,
+        outputFormat: preset.outputFormat,
+      };
+    }
+    // Default: resize to longest edge ≤ target width, preserving aspect ratio (no crop)
     return {
-      cropMode: 'exact',
-      targetWidth: preset.width,
-      targetHeight: preset.height,
+      cropMode: 'resize',
+      maxEdge: preset.width,
       outputFormat: preset.outputFormat,
     };
   }

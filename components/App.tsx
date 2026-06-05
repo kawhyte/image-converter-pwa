@@ -24,6 +24,7 @@ const App: React.FC = () => {
 		quality,
 		customWidth,
 		customHeight,
+		cropToFit,
 		isConverting,
 		conversionProgress,
 		convertingFile,
@@ -37,6 +38,7 @@ const App: React.FC = () => {
 		handleWidthChange,
 		handleHeightChange,
 		handleAspectRatioChange,
+		handleCropToggle,
 		resetState,
 		handleBulkConvert,
 		handleDownloadAll,
@@ -99,6 +101,8 @@ const App: React.FC = () => {
 											customHeight={customHeight}
 											handleHeightChange={handleHeightChange}
 											handleAspectRatioChange={handleAspectRatioChange}
+											cropToFit={cropToFit}
+											handleCropToggle={handleCropToggle}
 										/>
 
 										<FileList

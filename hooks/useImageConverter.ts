@@ -30,6 +30,7 @@ export function useImageConverter() {
   const [quality, setQuality] = useState<number>(presets[DEFAULT_PRESET].quality);
   const [customWidth, setCustomWidth] = useState<number | ''>('');
   const [customHeight, setCustomHeight] = useState<number | ''>('');
+  const [cropToFit, setCropToFit] = useState<boolean>(false);
 
   const [conversionResults, setConversionResults] = useState<ConversionResults>({});
   const [previewResults, setPreviewResults] = useState<ConversionResults>({});
@@ -54,9 +55,11 @@ export function useImageConverter() {
   const debouncedHeight = useDebounce(customHeight, 300);
   const debouncedQuality = useDebounce(quality, 300);
 
+  const debouncedCropToFit = useDebounce(cropToFit, 300);
+
   const resizeOptions = useMemo(
-    () => getResizeOptions(debouncedPreset, debouncedWidth, debouncedHeight),
-    [debouncedPreset, debouncedWidth, debouncedHeight]
+    () => getResizeOptions(debouncedPreset, debouncedWidth, debouncedHeight, debouncedCropToFit),
+    [debouncedPreset, debouncedWidth, debouncedHeight, debouncedCropToFit]
   );
 
   const generatePreviews = useCallback(async () => {
@@ -113,6 +116,13 @@ export function useImageConverter() {
   const handlePresetSelect = useCallback((presetKey: string) => {
     setSelectedPreset(presetKey);
     setQuality(presets[presetKey].quality);
+    setCropToFit(false);
+    setConversionResults({});
+    setDownloadReady(false);
+  }, []);
+
+  const handleCropToggle = useCallback(() => {
+    setCropToFit(prev => !prev);
     setConversionResults({});
     setDownloadReady(false);
   }, []);
@@ -229,7 +239,7 @@ export function useImageConverter() {
     setError('');
     setConversionProgress(0);
 
-    const opts = getResizeOptions(selectedPreset, customWidth, customHeight);
+    const opts = getResizeOptions(selectedPreset, customWidth, customHeight, cropToFit);
     const newResults: ConversionResults = {};
 
     for (let i = 0; i < files.length; i++) {
@@ -326,6 +336,7 @@ export function useImageConverter() {
     quality,
     customWidth,
     customHeight,
+    cropToFit,
     isConverting,
     conversionProgress,
     convertingFile,
@@ -340,6 +351,7 @@ export function useImageConverter() {
     handleWidthChange,
     handleHeightChange,
     handleAspectRatioChange,
+    handleCropToggle,
     resetState,
     handleBulkConvert,
     handleDownloadAll,
